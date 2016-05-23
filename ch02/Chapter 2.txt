@@ -1,0 +1,713 @@
+﻿CHAPTER 2:Types,Operators,and Expressions
+    Variables and constants are the basic data objects manipulated in a program.Declarations list the variables to be used,and state what type they have and perhaps what their initial values are.
+    变量和常量都是在程序中处理的基础数据对象.声明列出了需要使用的变量的名字,变量的类型还可能给出该变量的初始值.
+Operators specify what is to be done to them.Expressions combine variables and constants to produce new values.
+运算符指定如何操作变量和常量.表达式用于把变量与常量结合起来产生新的值.
+The type of an object determines the set of values it can have and what operations can be performed on it.These building blocks are the topics of this chapter.
+一个对象的类型决定其可以设置的值的集合以及可以对其执行的操作.本章将对这些构件进行详细讨论.
+    The ANSI standard has made many small changes and additions to basic types and expressions.There are now signed and unsigned forms of all integer types,
+    ANSI标准对基础类型和表达式做了一些小的改变和增补.现在对于所有整数类型都有signed(有符号)和unsigned(无符号)两种形式,
+and notations for unsigned constants and hexadecimal character constants.Floating-point operations may be done in single precision;there is also a long double type for extended precsion.
+而且表示无符号常量和十六进制字符常量.浮点操作可以在单精度下进行;还可以使用更高精度的long double(双精度)类型.
+String constants may be concatenated at complie time.Enumerations have become part of the language,formalizing a feature of long standing.Objects may be declared const,
+字符串常量可以在编译时连接.枚举类型成为语言的一部分,这是通过过长时间的坚持努力才形成的语言特性.对象可以声明成const(常量),
+which prevents them from being changed.The rules for automatic coercions among arithmetic types have been augmented to handle the richer set of types.
+这种对象不能修改.语言还对设立规则对算术类型之间的自动强制转换做了扩充,使得这一规则可以适合更多的数据类型.
+ 
+
+2.1 Variable Names
+    Although we didn't say so in Chapter 1,there are some restrictions on the names of variables and symbolic constants.Names are made up of letters and digits;the first character must be a letter.
+    对变量与符号常量的名字存在一些限制,尽管我们没有在第一章中指出.变量名由字母和数字组成;第一个字符必须是字母.
+The underscore "_" counts as a letter;it is sometimes useful for improving the readability of long variable names.Don't begin variable names with underscore,however,
+下划线"_"认为是字符;它有时可用于对长的变量命令以提高可读性.不管何时,不要以下划线开头作为变量的名称,
+since library routines often use such name.Upper case and lower case letters are distinct,so x and X are tow different names.Traditional C practice is to use lower case for variable names,
+因为库函数通常使用这样的命名方式.大写字母和小写字母是有区别的,所以小写x和大写X是两个不同的名称.C语言实践一般是使用小写来作为变量名,
+and all upper case for symbolic constants.
+而使用全大写来作为符号常量.
+    At least the first 31 characters of an internal name are significant.For function names and external variables,the number may be less than 31,
+   在内部名称中至少前31个字符要有意义.对于函数名称和外部变量,其中所包含的字符的数量可以少于31个,
+because external names may be used by assemblers and loaders over which the language has no control.For external names,the standard guarantees uniqueness only for 6 characters and a single case.
+这是因为外部名称可能会被使用被语言无法控制的汇编程序和装载程序使用.对于外部名称,ANSI C标准保证了唯一性仅对前6个字符而言并且不区分大小写.
+Keywords like if,else,int,float,etc,are reserved:you can't use them as variable names.They must be in lower case.
+诸如if,else,int,float等关键字是保留的:你不能使用它们用作变量名.所有关键字都必须都是小写.
+    It's wise to choose variable names that are related to the purpose of the variable,and that are unlikely to get mixed up typographically.We tend to use short names for local variables,
+    在选择变量名称时比较明智的方式是使用所选名字的含义能表达变量的用途.我们倾向于为局部变量选择短的名称,
+especially loop indices,and longer names for external variables.
+尤其是循环控制标记,外部变量使用较长的名字.
+
+
+2.2 Data Types and Sizes
+    There are only a few basic data types in C:
+    在语言中只有如下几个基本数据类型:
+        char        a single byte,chapable of holding on character in the local character set.
+        int           an integer,typically reflecting the natural size of integers on the host machine.
+        float        single-precision floating point.
+        double    double-precision floating point.
+    In addition,there are a number of qualifiers that can be applied to these basic types.short and long apply to integers:
+    此外,还有一些用于限定这些基本类型的限定符.其中short和long限定符用于整数类型:
+        short int sh;
+        long int counter;
+The word int can be omitted in such declarations,and typically is.
+在这样的声明中单词int可以被省略,通常人们都这么做.
+    The intent is that short and long should provide different lengths of integers where practical;int will normally be the natural size for a particular machine.
+    引入short与long的目的是为了使其提供各种满足实际要求的不同长度的整数.int通常反映特定机器的自然大小.
+short is often 16 bits,long 32 bits,and int either 16 or 32 bits.Each compiler is free to choose appropriate sizes for its own hardware,
+short通常是16位,long通常是32位,int通常为16位或32位.每个编译器根据其硬件自由的选择适当的大小.
+subject only to the restriction that shorts and ints are at least 16 bits,longs are at least 32 bits,and short is no longer than int,which is no longer than long.
+唯一的限定是short和int至少要有16位,long至少要有32位.short不能长于int,而int不得长于long.
+    The qualifier signed or unsigned may be applied to char or any integer.unsigned numbers are alwasys positive or zero,and obey the laws of arithmetic modulo 2n,
+    类型限定符signed或unsigned可用于限定char类型或任何整数类型.通过unsigned限定符限定的数总是正数或0,并服从算术法则模2n定律,
+where n is the number of bits in the type.So,for instance,if chars are 8 bits,unsigned char variables have values between 0 and 255,
+其中n是该类型机器表示的位数.所以,如果char对象占8位,那么 unsigned char变量的值就在0到255之间.
+while signed chars have values between -128 and 127 (in a two's complement  machine).Whether plain chars are signed or unsigned is machine-dependent,but printable characters are always positive.
+而signed char变量的值在-128到127之间(在采用补码的机器上).普通char对象是有符号还是无符号的由具体的机器决定,但是能够打印的字符总是正的.
+    The standard headers <limits.h> and <float.h> contain symbolic constants for all of these sizes,along with other properties of the machine and compiler.These are discussed in Appendix B.
+    标准头文件<limits.h>和<float.h>包含了所有大小的符号常量,以及机器和编译器有关的其他性质.这些将在附录B中讨论.
+ 
+Exercise 2-1. Write a program to determine the ranges of char,short,int,and long variables,both signed and unsigned,by printing appropriate values from standard headers and by direct computation.Harder if you compute them:determine the ranges of the various floating-point types.
+
+2.3 Constants
+    An integer constant like 1234 is an int.A long constatnt is written with a terminal l(ell) or L,as in 123456789L;an integer too big to fit into an int will also be taken as a long.
+    像1234一类的整数常量是int常量.long常量要以l或者L结尾,像123456789L.一个整数太大到int类型中放不下,那么也当做long常量来处理.
+Unsigned constatns are written with a terminal u or U,and the suffix ul or UL indicates unsigned long.
+无符号常量以字母u或U结尾,后缀ul或UL表示无符号long常量.
+    Floating-point constants contain a decimal point (123.4) or an exponent (1e-2) or both;their type is double,unless suffixed.The suffixes f or F indicate a float constant;l or L indicate a long double.
+    浮点常量包含了小数点(如123.4)或者指数(如1e-2)或两者都包含;在没有后缀时它们的类型为double.后缀f或F表明一个float常量;l或L表明long double常量.
+    The value of an integer can be specified in octal or hexadecimal instead of decimal.A leading 0(zero) on an integer constant means octal;
+    整数的值可以由八进制或十六进制来替代十进制表示.一个整数常量首位是0意味着八进制;
+a leading 0x or 0X means hexadecimal.For example,decimal 31 can be written as 037 in octal and 0x1f or 0X1F in hex.
+一个整数首位为0x或0X的意味着十六进制.例如,十进制31能够书写成八进制的037或者十六进制的0x1f或0X1F.
+Octal and hexadecimal constants may also be followed by L to make them long and U to make them unsigned:0XFUL is an unsigned long constant with value 15 decimal.
+在八进制和十六进制的常量中也可以带有后缀L表示long和后缀U表示无符号;0XFUL是一个unsigned long常量,其值等价于十进制的15.
+    A character constant is an integer,written as one character within single quotes,such as 'x'.The value of a character constant is the numeric value of the character in the machine's character set.
+    字符常量是一个整数,写成单引号扩住一个字符的形式,如'x'.字符常量的值是该字符在机器字符集中的数值.
+For example,in the ASCII character set the character constant '0' has the value 48.which is unrelated to the numeric value 0.
+例如,在ASCII字符集中,字符'0'的值为48,与数值0没有关系.
+If we write '0' instead of a numeric value like 48 that depends on character set,the program is independent of the particular value and easier to read.
+如果用字符'0'来替代像48一类依赖于字符集的数值,那么程序会因为独立于特定的值而更容易阅读.
+Character constants participate in numeric operations just as any other integers,although they are most often used in comparisons with other characters.
+虽然字符常量一般用来与其他字符进行比较,但字符常量也可以像整数一样参与数值运算.
+    Certain characters can be represented in character and string constants by escape sequences like \n(newline);these sequences look like two characters,but represent only one.
+    某些字符用字符常量表示,这些字符常量诸如\n(换行符)的转义字符;这些序列看起来像两个字符,其实只用来表示一个字符.
+In addition,an arbitrary byte-sized bit pattern can be sppecified by
+此外,我们可以指定字节大小的位模式
+        '\ooo'
+where ooo is one to three octal digits(0...7) or by
+ooo是1~3个的八进制数字(0...7).位模式还可以用
+        '\xhh'
+where hh is one or more hexadecimal digits(0...9,a...f,A...F).So we might write
+来指定字,hh是一个或多个十六进制数字(0...9,a...f,A...F),因此,可以这样书写
+        #define VTAB '\013'    /* ASCII vertical tab */
+        #define BELL '\007'    /* ASCII bell character */
+or,in hexadecimal,
+也可以用十六进制书写,
+        #define VTAB '\xb'     /* ASCII vertical tab */
+        #define BELL '\x7'     /* ASCII bell character */
+The complete set of escape sequences is
+下面是所有的转义字符序列
+        \a    alert(bell) character        \\        backslash
+        \b    backspace                      \?       question mark    
+        \f     formfeed                         \'        single quote
+        \n    newline                           \"        double quote
+        \r     carriage return               \ooo   octal number 
+        \t     horizontal tab                  \xhh   hexadecimal number
+        \v    vertical tab
+    The character constant '\0' represents the character with value zero,the null character.'\0' is often written instead of 0 to emphasize the character nature of some expression,but the numeric value is just 0.
+    字符常量'\0'表示其值为0的字符,也就是空字符.我们用'\0'来替代0,以在某些表达式中强调字符的性质,但其数值就是0.
+    A constant expression is an expression that involves only constatns.Such expressions may be evaluated during compilation rather than run-time,
+    常量表达式是表达式中仅包含常量的表达式.这些表达式能够在编译时计算而不必要推出到运行时,
+and accordingly may be used in any place that a constant can occur,as in
+因而可以用在常量可以出现的任何位置,例如
+        #define MAXLINE 1000
+        char line[MAXLINE+1]
+    or
+        #define LEAP 1 /* in leap years */
+        int days[31+28+LEAP+31+30+31+30+31+31+30+31+30+31]
+    A string constnt,or string literal,is a sequence of zero or more characters surrounded by double quotes,as in
+    字符串常量,或叫做字面量,是用双引号括住的0个或多个字符组成的字符序列,例如
+        "I am a string"
+    or
+        "" /* the empty string */
+The quotes are not part of the string,but serve only to delimit it.The same escape sequences used in character constants apply in strings;
+引号不是字符串的一部分,只为限定字符.在字符常量中使用的转义字符同样可以用在字符串中.
+\" represents the double-quote character.String constants can be concatenated at compile time:
+\" 表示双引号字符.字符串常量能够连接在编译时.
+        "hello,"    "  world"
+is equivalent to
+        "hello, world"
+This is useful for splitting long strings across several sourcel line.
+这种表示方法可用于比较长的字符串分成若干源文件行.
+    Technically,a string constant is an array of characters.The internal representation of a string has a null characer '\0' at the end,
+    技术上,字符串常量是一个字符数组.在内部表示字符串时要用一个空字符'\0'来结尾,
+so the physical storage required is one more than the number of characters written between the quotes.This representation means that there is no limit to how long a string can be,
+所以用来存储字符串的物理存储单元要比在双引号中的字符数多一个.这种表现方式意味着,C语言对字符串长度没有限制,
+but programs must scan a string completely to determine its length.The standard library function strlen(s) returns the length of its character string argument s,excluding the terminal '\0',Here is our version:
+但是程序必须扫描完整的字符串才能确定这个字符串的长度.标准库函数strlen(s)函数用于返回其字符串变量s的长度,不包括末尾的'\0'.下面是我们设计的一个版本:
+    /* strlen : return length of s */
+    int strlen(char s[])
+    {
+        int i;
+        i = 0;
+        while(s[i]!='\0')
+            ++i;
+        return i;
+    }
+strlen and other string functions are declared in the standard header <string.h>
+strlen函数和其他字符串函数都定义在标准都文件<string.h>中.
+    Be careful to distinguish between a character constant and a string that contains a single character:'x' is not the same "x".
+    注意仔细区分字符常量与只包含一个字符的字符串的区别:'x'与"x"是不相同的.
+The former is an integer,used to produce the numeric value of the letter x in the machine's character set.The latter is an array of characters that contains one character(the letter x) and a  '\0'
+前面的x是一个整数,用来产生字母x的值在机器字符集的数值.后面的x是一个字符数组包含一个字符x和一个'\0'.
+    There is one other kind of constant,the enumeration constant.An enumeration is a list of constant integer values,as in
+    有另一种类型的常量,叫做枚举常量.枚举是一个常量整数值的列表,像下面这样
+        enum boolean { NO,YES };
+The first name in an enum has value 0,the next 1,and so on,unless explicit values are specified.If not all values are specified,
+第一个枚举名的值为0,第二个为1,如此等等,除非指定了显式的值.如果不是所有的值都指定了,
+unspecified values continue the progression from the last specified value,as in  the second of these examples.
+那么未指定名字的值依着最后一个指定的值向后递增,如同下面两个例子.
+        enum escapes { BELL = '\a',BACKSPACE='\b', TAB = '\t',
+                                   NEWLINE='\n',VTAB='\v',RETURN='\r' };
+        enum months { JAN=1,FEB,MAR,APR,MAY,JUN,
+                                 JUL,AUG,SEP,OCT,NOV,DEC}; /* FEB is 2,MAR is 3,etc */
+Names in different enumerations must be distinct.Values need not be distinct in the same enumeration.
+不同枚举中名字必须各不相同.同一枚举中各个名字的值不要求不同.
+    Enumerations provide a convenient way to associate constant values with names,and alternative to #define with the advantage that the values can be generated for you.
+    枚举提供一种通过关联名字访问常量值的便捷方式,其相对于#define方式有利的地方是其值可以由自己控制.
+Altought variables of enum types may be declared,compilers need not check that what you store in such a variable is a valid value for the enumeration.
+虽然可以定义枚举类型的变量,但编译器不需要检查在这个变量中存储的值是否为该枚举的有效值.
+Nevertheless,enumeration variables offer the chance of checking and so are often better than #defines.In addition,a debugger may be able to print values of enumeration variables in their symbolic from.
+不过,枚举变量提供了这种检查的机会,所以通常优于#defines.另外,调试程序能以符号形式打印出枚举变量的值.
+
+
+
+2.4 Declarations
+    All variables must be declared before use,although certain declaration can be made implicitly by context.A declaration specifies a type,and contains a list of one or more variables of that type,as in
+    所有变量在使用之前必须声明,某些声明能够通过上下文隐式做.声明指定类型,和包含一个或多个该类型组成的变量表,例如
+        int lower,upper,step;
+        char c,line[1000];
+Variables can be distributed among declarations in any fashion;the lists above could equally well be written as
+变量可以以任何方式分散在多个声明中;上面的变量列表等同于下面这样写
+        int lower;
+        int upper;
+        int step;
+        char c;
+        char line[1000]
+This latter from takes more space,but is convenient for adding a comment to each declaration or for subsequent modifications.
+后一种形式占用更多的空间,但是有利于给每个声明增加注释,还方便后来的修改.
+    A variable may also be initialized in its declaration.If the name is followed by an equals sign and an expression,the expression serves as an initializer,as in
+    变量可能在声明时被初始化.如果变量名字后跟着一个等号与一个表达式,那么这个表达式作为初始化符,例如
+        char esc='\\';
+        int i=0;
+        int limit = MAXLINE+1;
+        float eps = 1.0e-5;
+    If the variable in question is not automatic,the initialization is done on only,conceptually before the program starts executing,and the initializer may be a constant expression.
+    如果所涉及的变量不是自动变量,初始化仅执行一次,概念上说应该在程序开始执行之前进行初始化,此时要求初始化符必须为常量表达式.
+An explicitly initialized automatic variable is initialized each time the function or block it is in is entered;the initializer may be any expresson.
+显示的初始化的自动变量每次进入函数或分块时就执行一次初始化;其初始化器可以是任何表达式.
+External and static variables are initialized to zero by default.Automatic variables for which there is no explicit initializer have undefined(i.e,garbage) values.
+外部变量的或静态变量的缺省初始化值为0.没有显式初始化的自动变量的值为未定义的值(即,垃圾).
+    The qualifier const can be applied to the declaration of any variable to specify that its value will not be changed.For an array,the const qualifier says that the elemnets will not be altered.
+    修饰符const能够应用到任何变量的声明中,由该限定符限定的变量其值不能改变.对于数组变量,const修饰符使数组所有的元素的值都不能改变.
+        const double e=2.7182845905;
+        const char msg[] = "warning: ";
+The const declaration can also be used with array arguments,to indicate the function does not change that array:
+const声明也能够用于数组参数,表示函数不能改变数组的值:
+        int strlen(const char[]);
+The result is implementation-defined if an attempt is made to change a const.
+如果试图修改限定的值,那么产生的后果取决于具体的实现.
+ 
+
+2.5 Arithmetic Operators
+    The binary arithmetic operators are +,-,*,/,and the modulus operator %.Integer division truncates any fractional part.The expression
+    二元运算符包括+,-,*,/ 和取模运算符%.整数除法要截取结果的小数部分.表达式
+        x % y
+produces the remainder when x is divided by y,and thus is zero when y divides x exactly.
+产生x除以y的余数,当y能整除x时结果为0.
+For example,a year is a leap year if it is divisible by 4 but not by 100,except that years divisible by 400 are leap years.Therefore
+例如,某一年份如果能被4整除但是不能被100整除那么这一年就是闰年,此外能被400整除的也是闰年,因此有
+        if((year % 4 == 0 && year % 100 != 0) || year % 400==0)
+            printf("%d is a leap year \n", year);
+        else
+            pirntf("%d is not a leap year \n",year);
+The % operator cannot be applied to float or double.The direction of truncation for / and the sign of the result for % are machine-dependent for negative operands,as is the action taken on overflow or underflow.
+取模运算符不能用于float和double对象.在有负的运算分量时,整数除法截取的方向以及取模运算结果的符号取决于具体机器,在出现上溢或下溢时所要采取的动作也取决于具体机器.
+    The binary + and - operators have the same precedence,which is lower than the precedence of *,/,and %, which is in turn lower than unary + and -.Arithmetic operators associate left to right.
+    二元运算+和-运算符有同样的优先级,但他们的优先级比*,/和取模的优先级低,而后者又比一元运算符+和-的优先级低.算术运算符采用从左至右的结合规则.
+    Table 2-1 at the end of this chapter summarizes precedence and associativity for all operators.
+    本章末尾的表2-1在总结了所有的优先级和结合律.
+
+
+
+2.6 Relational and Logical Operators
+    The relational operators are
+    关系运算符有如下几个
+        >    >=    <    <=
+They all have the same precedence.Just below them in precedence are the equality operators:
+它们拥有同样的优先级.等于运算符的优先级正好比它们低一级:
+        ==    !=
+Relational operators have lower precedence than arithmetic operators,so an expression like i< lim-1 is taken as i< (lim-1),as would be expected.
+关系运算符优先级低于算术运算符,所以表达式像 i < lim -1 等于 i <(lim-1) .
+    More interesting are the logical operators && and ||.Expressions connected by && or || are evaluated left to right,and evaluation stops as soon as the truth or falsehood of the result is known.
+    更有趣的是逻辑运算符&&和||.由&&和||连接的表达式从左至右计算,并且一旦当知道真假结果时立即停止计算.
+Most C programs rely on these properties.For example,here is a loop from the input function getline that we wrote in Chapter 1:
+大部分C程序依赖这个特性.例如,这里的循环语句取自我们在第一章写的输入函数getline:
+        for(i=0;i<lim-1 &&(c=getchar())!='\n' && c!=EOF;++i)
+                s[i]=c;
+Before reading a new character it is neccessary to check that there is room to store it in the array s,so the test i<lim-1 must be made first.Moreover,if this test fails,we must not go on and read another character.
+在读取一个新字符之前必须检查一下数组s中是否还有空间存放这个字符.因此首先测试是否i<lim-1.然后,如果这个测试失败,我们没必要继续读下一个字符.
+    Similarly,it would be unfortunate if c were tested against EOF before getchar is called;therefore the call and assignment must occur before the character in c is tested.
+    类似的,如果在调用getchar函数之前就对c是否EOF进行测试,将会是令人遗憾的;因此,函数调用与赋值都必须发生在字符c测试之前完成.
+    The precedence of && is higher than that of ||,and both are lower than relational and equality operators,so expressions like
+    优先级&&比||高,但它们都要低于关系运算符和等于运算符的优先级,所以表达式
+        i<lim-1 && (c=getchar())!='\n' && c != EOF
+need no extra parentheses.But since the precedence of != is higher than assignment,parentheses are needed in
+不需要额外的括号符.但是,由于!=运算符的优先级高于赋值运算符,圆括号需要在
+        (c=getchar())!='\n'
+to achieve the desired result of assignment to c and then comparison with '\n'.
+为了达到我们所期望的先把函数值赋给c再与'\n'的结果进行比较的效果.
+    By definition ,the numeric value of a relational or logical expression is 1 if the relation is true,and 0 if the relation is false.
+    根据定义,如果关系表达式与逻辑表达式结果为真,那么它的值为1;如果为假,那么它的值为0.
+    The unary negation operator ! converts a non-zero operand into a zero,and a zero operand into 1.A common use of ! is in constructions like 
+    一元求反运算符!用于将非0运算符转换成0,把0运算分量转换成1.该运算符通常用在诸如
+        if(!valid)
+rather than
+相比下面
+        if(valid==0)
+It's hard to generalize about which form is better.Constructions like !valid read nicely("if not valid"),but more complicated ones can be hard to understand.
+很难说明哪种形式更好.构造如!valid读起来好听一些("如果不是有效的"),但是这种形式在比较复杂的情况下可能难于理解.
+ 
+Exercise 2-2. Write a loop equivalent to the for loop above without using && or ||.
+
+
+
+2.7 Type Conversions
+    When an operator has operands of different types,they are converted to common type according to a small number of rules.
+    当一个运算符的几个运算分量拥有不同类型时,要根据一些规则把它们转换成某个共同的类型.
+In general,the only automatic conversions are those that convert a "narrower" operand into  a "wider" one without losing information,
+一般而言,自动转换只能把"较窄的"运算分量转换为"较宽的"运算分量从而不丢失分量信息,
+such as converting an integer to floating point in an expression like f+i.Expressions that don't make sense,like using a float as a subscript,are disallowed.
+像诸如 f+i 一类表达式中的计算要把整数变量 i 的值自动转换为浮点类型.不允许使用没有意义的表达式,像使用浮点数作为下标,是不允许的.
+Expressions that might lose information,like assigning a longer integer type to a short,or a floating-point type to an integer,may draw a warning,but they are not illegal.
+可能丢失信息的表达式可能会引起警告信息,如把较长的整型类型赋值给较短的类型,或者将一个浮点类型赋值给整数等等,但是它们不是非法表达式.
+    A char is just a small integer,so chars may be freely used in arithmetic expressions.This permits considerable flexibility in certain kinds of character transformations.
+    char型就是小整数类型,所以字符型可以自由的使用在算术表达式中.这使得某些字符转换中有了巨大的灵活性.
+One is exemplified by this navie implementation of the function atoi,which converts a string of digits into its numeric equivalent.
+一个例子是用于将数字字符转换为对应的数值的函数atoi的原生实现,
+        /* atoi:convert s to integer */
+        int atoi(char s[])
+        {
+            int i,n;
+            n=0;
+            for(i=0;s[i]>='0' && s[i]<='9';++i)
+                n = 10 * n +(s[i] - '0');
+            return n;
+        }
+As we discussed in Chapter 1,the expression
+在第一章我们讨论过表达式
+        s[i] -'0'
+gives the numeric value of the character stored in s[i],because the values of '0','1',etc.,form a contiguous increasing sequence.
+用于s[i]中存储的字符所对应的数值,因为'0','1',等值形成了一个连续递增的序列.
+    Another example of char to int conversion is the function lower,which maps a single character to lower case for the ASCII character set.If the character is not an upper case letter,lower returns it unchanged.
+    另一个字符转换为整数的例子是转换函数lower,它把ASCII字符集的字符映射成对应的小写字母.如果字符不是大写字母,lower函数返回原来的值.
+        /* lower: convert c to lower case; ASCII only */
+        int lower(int c)
+        {
+            if(c>='A' && c<='Z')
+                return c+'a'-'A';
+            else
+                return c;
+        }
+This works for ASCII because corresponding upper case and lower case letters are a fixed distance apart as numeric values and each alphabet is contiguous-there is nothing but letters between A and Z.
+这个函数是为ASCII设计,在ASCII字符集中,大写字母与对应的小写字母像数值一样有一个固定的距离,并且每个字母都是连续的,A到Z之间只有字母.
+This latter observation is not true of the EBCDIC character set,however,so this code would convert more than just letters in EBCDIC.
+然而,后一个结论对于EBCDIC字符集并不是成立的.所以这段代码在EBCDIC字符集中可能转换的不止字符.
+    The standard header <ctype.h>,described in Appendxi B,defines a family of functions that provide tests and conversions that are independent of character set.
+    附录B中描述了标准头文件<ctype.h>定义的函数,这些函数提供了独立于字符集的测试和转换的函数.
+For example,the function tolower(c) returns the lower case value of c if c is upper case,so tolower is a portable replacement for the function lower shown above.Similarly,the test
+例如,函数tolower(c)用于在c为大写字母时将之转换成小写字母,所以tolower是lower函数的一个替代函数.同样条件,
+        c>='0' && c<='9'
+can be replaced by
+可以用如下替换
+        isdigit(c)
+We will use the <ctype.h> functions from now on.
+我们现在可以使用<ctype.h>中定义的函数了.
+    There is one subtle point about the conversion of characters to integers.The language does not specify whether variables of type char are signed or unsigned quantities.
+    关于转换字符为整数时有一点比较微妙.C语言没有指定变量类型为char是无符号还是有符号的量.
+When a char is converted to an int,can it ever produce a negative integer?The answer varies from machine to machine,reflecting differences in architecture.
+当一个char类型的值转换为int型的值时,其结果是不是为负整数?结果随着机器的不同而有所变化,反映了不同机器架构之间的区别.
+On some machines a char whose leftmost bit is will be converted to a negative integer("sign extension").On others,a char is promoted to an int by adding zeros at the left end,and thus is always positive.
+在某些机器上,如果字符的最左一位为1,那么就被转换成负整数(称作"符号扩展").在另一些机器上,采用的是提升的方法,通过在最左边加上0把字符提升为整数,这样转换的结果总是正的.
+    The definition of C guarantees that any character in the machine's standard printing character set will never be negative,so these characters will always be positive quantities in expressions.
+    C语言定义保证了机器的标准可打印字符集的字符不是负的,故在表达式中这些字符总是正的.
+But arbitrary bit patterns stored in character variables may appear to be negative on some machines,yet positive on others.
+但是,字符变量存储的位模式在某些机器上出现可能是负的,而在另一些机器上总是正的.
+For portability,specify signed or unsigned if non-character data is to be stored in char variables.
+为了保证程序的可移植性,如果要在char变量中存储非字符数据,那么最好指定signed或unsigned限定符.
+    Relational expressions like i > j and logical expressions connected by && and || are defined to have value 1 if true,and 0 if false.Thus the assignment
+    关系表达式(如i>j)和由&&于||连接的逻辑表达式的值在其结果为真时为1,在结果为假时为0.因此,赋值语句
+        d = c >= '0' && c <= '9'
+sets d to 1 if c is digit,and 0 if not.However,functions like isdigit may return any non-zero value for true.In the part of if,while,for,etc.,"true" just means "non-zero," so this makes no difference.
+在c的值为数字时将d设置为1,否则将d设置为0.然而,函数像isdigit在变量为真时可能返回任何非0值.在if,while,for等条件部分,"ture"的意思是"非0",所以没有什么不同.
+    Implicit arithmetic conversions work much as expected.In general,if an operator like + or * that takes two operands (a binary operator) has operands of different types,
+    我们很希望能进行隐式算术转换.通常,如果操作像+或者*等二元运算符的两个运算分量具有不同的类型,
+the "lower" type is promoted to the "higher" type before the operation proceeds.The result is of the higher type.
+在操作运算之前较"低"的类型要提升到较"高"的类型.结果为较"高"的类型.
+Section 6 of Appendix A states the conversion rules precisely.If there are no unsigned operands,however,the following informal set of rules will suffice:
+附录A的第六小节给出了转换规则.然而,如果没有无符号操作分量,那么只要使用如下一组非正式的规则就够了:
+        If either operand is long double,convert the other a long double.        
+        Otherwise,if either operand is double,convert the other to duble.
+        Otherwise,if either operand is float,convert the other to float.
+        Otherwise,convert char and short to int.
+        Then,if either operand is long,convert the other to long.
+    Notice that floats in an expression are not automatically converted to double;this is a change from the original definition.In general,mathematical functions like those in <math.h> will use double precision.
+    注意,在表达式中float类型的运算分量不会自动转换成double类型,这与原来定义不同.一般而言,数学函数,像定义在标准头文件<math.h>中的函数要使用双精度.
+The main reason for using float is to save storage in large arrays,or,less often,to save time on machines where double-precision arithmetic is particularly expensive.
+主要的原因是使用一个较大的数组时使用浮点来节省存储空间,因为双精度算术运算特别费时,所以同时也是为了节省执行时间.
+    Conversion rules are more complicated when unsigned operands are involved.The problem is that comparisons between signed and unsigned values are machine-dependent,
+    当表达式包含无符号的运算分量时转换规则更加复杂一些.主要的问题是在有符号和无符号值得比较运算取决于机器,
+because they depend on the sizes of the various integer types.For example,suppose that int is 16 bits and long is 32 bits.Then -1L< 1U,because 1U,which is an unsigned int,is promoted to a signed long.
+因为它们依赖于整型变量的大小.例如,假定int占16位,long占32位.那么,-1L<1U,这是因为unsinged int类型的1U是被提升为有singned long类型.
+But -1L>1UL,because -1L is promoted to unsigned long and thus appears to be a large positive number.
+但是-1L>1UL,因为-1L被提升为 unsinged long类型,因此它是一个比较大的正数.
+    Conversions take place across assignments;the value of the right side is converted to the type of the left,which is the type of the result.
+    在赋值的时候也要发生类型转换;等号右边的值被转换成左边值的类型,后者就是赋值表达式的结果的类型.
+    A character is converted to an integer,either by sign extension or not,as described above.
+    如前所说,不管是否需要进行符号扩展,字符值都要被转换为整数值,
+    Longer integers are converted to shorter ones or to chars by dropping the excess high-order bits.Thus in
+    当把较长的整型转换成较短的整形或者字符时,要把超出的高位部分去掉.于是,
+        int i;
+        char c;
+        i = c;
+        c = i;
+the value of c is unchanged.This is true whether or not sign extension is involved.Reversing the order of assignments might lose information,however.
+执行后c的值不会改变.无论是否进行符号扩展.然而,反转两个赋值语句的顺序就会丢失信息.
+    If x is float and i is int,then x=i and i=x both cause conversions;float to int causes truncation of any fractional part.When double is converted to float,
+    如果x是float类型而i是int类型,x=i与i=x都会引起转型;float转换成int要把小数部分截取掉;当把double类型装换成float类型时,
+whether the value is rounded or truncated is implementation-dependent.
+是四舍五入还是截取取决于具体实现.
+    Since an argument of a function call is an expression,type conversions also take place when arguments are passed to functions.In the absence of a function prototype,
+    由于函数调用的参数是一个表达式,在参数传递进函数之时同样发生类型转换.在缺少函数原型的情况下,
+char and short become int,and float becomes double.This is why we have declared function arguments to be int and double even when the function is called with char and float.
+char与short类型转换为int类型,float类型转换成double类型.这就是为什么函数是用char和float类型的参数表达式调用时,我们仍然定义参数为int和double的原因.
+    Finally,explicit type conversion can be forced("coerced") in any expression,with a unary operator called a cast.In the construction
+    最后,在任何表达式中都可以进行显式的类型转换("强制转换"),这时需要使用一个叫做强制转换符的一元的操作符,如下构造中
+        (type-name) expression
+the expression is converted to the named type by the conversion rules above.The precise meaning of a cast is as if the expression were assigned to a variable of the specified type,
+表达式按上述规则被转换成由类型名指定类型.其精确含义是:表达式首先被赋给类型名所指定类型的某个变量,
+which is then used in place of the whole construction.For example,the library routine sqrt expects a double argument,
+然后再将其用在整个构造所在的位置.例如,库函数sqrt期望一个double型的参数,
+and will produce nonsense if inadvertently handed something else.(sqrt is declared in <math.h>.) So if n is an integer,we can use
+当我们在某个地方做了不适当的处理,那么会产生无意义的结果.(sqrt是<math.h>库中所定义的函数)所以如果n是一个整型,我们可以这样
+        sqrt((double)n)
+to convert the value of n to double before passing it to sqrt.Note that the cast produces the value of n in the proper type;n itself is not altered.
+在传递到sqrt函数之前先把n的值转换为double.注意,强制转换为指定的类型产生n的值;n本身的值没有改变.
+The cast operator has the same high precedence as other unary operators,as summarized in the table at the end of this chapter.
+强制转换操作与其他一元操作符具有相同的优先级,在本章最后的表中有总结.
+    If arguments are decalred by a function prototype,as they normally should be,the declaration cause automatic coercion of any arguments when the function is called.Thus,given a function prototype for sqrt:
+    如果参数是通过函数原型说明的,那么在通常情况,当函数被调用时,系统将对参数自动强制转换.于是,对于sqrt函数原型:
+        double sqrt(double)
+the call
+        root2 = sqrt(2);
+coerces the integer 2 into the double value 2.0 without any need for a cast.
+不需要任何强制转换符,自动将整型值2强制转换成double型的值2.0.
+    The standard library includes a protable implementation of a pseudo-random number generator and a function for initializing the seed;the former illustrates a cast:
+    标准库中包含了一个实现了伪随机数产生器的函数rand和一个用于初始化种子的函数srand;在前一个函数使用了强制转换:
+        unsigned long int next = 1;
+        /* rand: return pseudo-random integer on 0....32767 */
+        int rand(void)
+        {
+            next = next * 1103515245 + 12345;
+            return (unsigned int)(next/65536)%32768;
+        }
+ 
+        /* srand: set seed for rand() */
+        void srand(unsigned int seed)
+        {
+            next = seed;
+        }
+ 
+Exercisse 2-3. Write the function htoi(s),which converts a string of hexadecimal digits(including an optional 0x or 0X) into its equivalent integer value.The allowable digits are 0 through 9,a through f,and A through F.
+
+
+2.8 Increment and Decrement Operators
+    C provides two unusual operators for incrementing and decrementing variables.The increment operator ++ adds 1 to its operand,while the decrement operator -- subtracts 1.
+    C语言为变量增加和减少提供了两个奇特的运算符.加一运算符++用于使其运算量加1,而减一运算符---使分量值减1.
+We have frequently used ++ to increment variablesas in
+我们经常使用++运算符来使变量值加1
+if( c=='\n' )
+    ++n1;
+The unusual aspect is that ++ and -- may be used either as prefix operators (before the variable,as in ++n),or postfix (after the variable:n++).
+++ 与 -- 这两个运算符奇特的方面在于,它们既可以用作前缀操作(在变量前使用,如++n),也可以用作后缀操作(在变量后使用,如n++)
+In both cases,the effect is to increment n.But the expression ++n increments n before its value is used,while n++ increments n after its value has been used.
+在这两种情况下,效果都是使n的值加1.但是,表达式++n在n使用之前先使n加1.而表达式n++在n的使用之后再使n加1.
+This means that in a context where the value is being used,not just the effect,++n and n++ are different.If n is 5,then
+这意味着在该值被使用的上下文中,,++n和n++的效果不一样.假如n为5,那么
+        x = n++;
+set x to 5,but
+将x设置为5,而
+        x = ++n;
+set x to 6.
+将x设置为6.
+In both cases,n becomes 6.The increment and decrement operators can only be applied to variables;an expression like (i+j)++is illegal.
+在上面两个例子中,n变量都变成6.自增和自减运算仅仅能作用于变量;像表达式(i+j)++就是非法的.
+    In a context where no value is wanted ,just the incrementing effect,as in
+    在仅仅需要自增效果,不需要任何具体值的地方,像
+        if(c=='\n')
+            n1++;
+prefix and postfix are the same.But there are situations where one or the other is specifically called for.For instance,consider the function squeeze(s,c),
+++作为前缀和作为后缀都是一样的.但是有些情况需要特别指定.例如,考虑函数squeeze(s,c)
+which removes all occurrences of the character c from the string s.
+它用于从字符串s中所有出现的字符c都删除.        
+        /* squeeze: delete all c from s */
+        void squeeze(char s[],int c)
+        {
+            int i,j;
+            for(i = j = 0;s[i] !='\0';i++)
+            {
+                if(s[i] != c)
+                    s[j++]=s[i];
+            }
+            s[j]='\0';
+        }
+Each time a non-c occurs,it is copied into the current j position and only then is j incremented to be ready for the next character.This is exactly equivalent to
+每次出现一个不是c的字符时,就把它拷贝到当前j的位置并且使j的值增加1,以准备处理下一个字符.其完整的语句等价于
+        if(s[i] != c){
+            s[j] = s[i];
+            j++;
+        }
+    Another example of a similar construction comes from the getline function that we wrote in Chapter 1,where we can replace
+    具有类似构造的另一个例子是来自在第一章编写的getline函数,我们可以替换
+        if(c == '\n') {
+            s[i] = c;
+            ++i;
+        }
+by the more compact
+用更为紧凑的形式
+        if(c=='\n')
+            s[i++] = c;
+    As a third example,consider the standard function strcat(s,t),which concatenates the string t to the end of the string s.strcat assumes that there is enough space in s to hold the combination.
+    作为第三个例子,考虑标准函数strcat(s,t),它用于把字符串t连接到字符串s的后面.stract函数假定在s中有足够的空间来保存这两个字符串的结果.
+As we have written it,stract returns no value;the standard library version returns a pointer to the resulting string.
+下面我们编写这个函数不返回任何值;标准库函数版本返回一个指向新字符串的指针.
+        /* stract: concatenate t to end of s;s must be big enough */
+        void strcat(char s[],char t[]){
+            int i, j;
+            i = j = 0;
+            while(s[i]!='\0') /* find end of s */
+                i++;
+            while((s[i++] = t[j++]) != '\0') /* copy t */
+                ;
+        }
+As each character is copied from t to s,the postifx ++ is applied to both i and j to make sure that they are in position for the next pass through the loop.
+将t中的字符逐个拷贝到s后面时,后缀++运算作用于i和j,保证在循环过程中i与j均指向下一个位置.
+ 
+Exercise 2-4. Write an alternate version of squeeze(s1,s2) that deletes each character in s1 that matches any character in the string s2.
+ 
+Exercise 2-5. Write the function any(s1,s2),which returns the first location in the string s1 where any character from the string s2 occurs,or -1 if s1 contains no characters from s2.(The standard library function strpbrk does the same job but returns a pointer to the location.)
+
+
+2.9 Bitwise Operators
+    C provides six operators for bit manipulation;these may only be applied to integral operands,that is ,char,short ,int,and long,whether signed or unsigned.
+    C语言提供6个用于位操作的运算符;这些运算符只能对整数分量起作用.包括,char,short,int和long的无符或有符类型.
+        &        bitwise AND
+        |          bitwise inclusive OR
+        ^         bitwise exclusive OR
+        <<      left shift
+        >>      right shift
+        ~        one's complement(unary)
+    The bitwise AND operator & is often used to mask off some set of bits;for example:
+    按位与操作符&经常用来屏蔽某些位,例如:
+        n  = n & 0177
+sets to zero all but the low-order 7 bits of n.
+用于将n除7个低位外的各位设置为0.
+    The bitwise OR operator | is used to turn bit on:
+    按位或操作符|用来打开某些位:
+        x = x | SET_ON
+sets to one in x the bits that are set to one in SET_ON.
+用于将x中与SET_ON中为1的位对应的那些位置也为1.
+    The bitwise exclusive OR operator ^ sets a one in each bit position where its operands have different bits,and zero where they are the same.
+    按位异或操作符^用于在两个运算分量的对应位不相同时设置该位为1,否则,设置该位为0.
+    One must distinguish the bitwise operators & and | from the logical operators && and ||,which imply left-to-right evaluation of a truth value.For example,if x is 1 and y is 2,then x & y is zero while x && y is one.
+    我们必须把按位运算符&和 | 与逻辑运算符 && 和 || 区别开来,后者用来从左至右求表达式的真值.例如,如果x的值为1而y的值为2,那么x&y为0,而x&&y为1.
+    The shift operators << and >> perform left and right shifts of their left operand by the number of bit positions given by the right operand,which must be nonegative.
+    移位操作符<<和>>分别用于将左运算分量左移与右移由右运算分量指定的位数,右分量必须为正数.
+Thus x << 2 shifts the value of x left by two positions,filling vacated bits whith zero;this is equivalent to multiplication by 4.Right shifting an unsigned quantity always fills vacated bits with zero.
+于是x<<2用于将x的值左移2位,右边空出的2位用0填充;这等价于左分量乘以4.当右移无符号量时,左边空出的部分用0填空;
+Right shifting a signed quantity will fill with sign bit("arithmetic shift") on some machines and with 0-bits("logical shift") on others.
+当右移有符号量时,在一些机器上对左边分量填充符号位("算术移位"),而另外一些机器上则对左边空出的部分用0填充("逻辑移位").
+    The unary operator ~ yields the one's complement of an integer;that is,it converts each 1-bit into a 0-bit and vice versa.For example,
+    一元操作符~用于求整数的反码;即它分别将运算分量上的1转换成0,0换成1.例如,
+        x = x & ~077
+sets the last six bits of x to zero.Note that x & ~077 is independent of word length,and is thus preferable to,for example,x & 0177700,which assumes that x is a 16-bit quantity.
+用于将x的最后六位设置为0.注意,表达式x & ~077 是独立于字长的,它要比诸如x & 0177700一类的表达式好,后者假定x是十六位的量.
+The portable form involves no extra cost,since ~077 is a constant expression that can be evaluated at compile time.
+这种可移植形式并没有增加额外开销,因为~077是常量表达式,可以在编译时求值.
+    As an illustration of some of the bit operators,consider the function getbits(x,p,n) that returns the (right adjusted) n-bit field of x that begins at position p.
+    为了对某些按位运算符做进一步说明,考虑函数getbits(x,p,n),返回x从p位置开始的(右对齐)n位的值.
+We assume that bit position 0 is at the right end and that n and p are sensible positive values.For example,getbits(x,4,3) returns the three bits in bit positions 4,3 and 2,right adjusted.
+我们假定第0位是最后一位,n和p都是符合情理的正值.例如,getbits(x,4,3)返回右对齐的第4,3,2共三位:
+        /* getbits: get n bits from position p */
+        unsigned getbits(unsigned x,int p,int n){
+            return (x >> (p+1-n)) &  ~(~0 << n);
+        }
+The expression x >> (p+1-n) moves the desired field to the right end of the word.~0 is all 1-bits;shifting it left n bit positions with ~0 <<n places zeros in the rightmost n bits;
+表达式x>>(p+1-n) 将所希望的位段移到字的右边.~0将所有位都设置为1,~0<<n 将~0左移n位,将最右边的n位用0填空.
+complementing that with ~ makes a mask with ones in the rightmost n bits.
+再对整个表达式求反,将最右边n位置为1,其余各位置为0.
+ 
+Exercise 2-6. Write a function setbits(x,p,n,y) that returns x with the n bits that begin at position p set to the rightmost n bits of y,leaving the other bits unchanged.
+ 
+Exercise 2-7. Write function invert(x,p,n) that returns x with the n bits that begin at position p inverted(i.e.,1 changed into 0 and vice versa),leaving the others unchanged.
+ 
+Exercise 2-8. Write a function rightrot(x,n) that returns the value of the integer x rotated to the right by n bit positions.
+
+
+2.10 Assignment Operators and Expressions
+    Expressions such as
+    表达如如下:
+        i = i + 2
+in which the variable on the left hand side is repeated immediately on the right,can be written in the compressed from
+如果赋值运算符左边的变量在右边紧接着又重复一次,那么可以改写成更简单的形式:
+        i += 2
+The operator += is called an assignment operator.
+运算符+=叫做赋值运算符.
+    Most binary operators(operators like + that have a left and right operand) have a corresponding assignment operator op=,where op is one of
+    大多数二元运算符(即有左右两个运算分量的运算符)都有一个对应的赋值运算符op=,op是下列运算符中的一种
+        +    -    *    /    %    <<    >>    &    ^    |    
+If expr1 and expr2 are expressions,then
+如果expr1和expr2都是表达式,那么
+        expr1 op= expr2
+is equivalent to
+等价于
+        expr1 = (expr1) op (expr2)
+except that expr1 is computed only once.Notice the parentheses around expr2.
+区别在于expr1仅计算一次.注意,expr1和expr2的圆括号是必须的.
+        x *= y + 1
+means
+        x = x * (y + 1)
+ranther than
+而不是
+        x = x * y + 1
+    As an example,the function bitcount counts the number of  1-bits in its integer argument.
+    举个栗子,函数bitcounts用于统计整数变量中值为1的位个数.
+/* bitcount: count 1 bit in x */
+int bitcount(unsigned x)
+{
+    int b;
+    for(b=0;x!=0;x>>=1)
+        if(x & 01)
+           b++;
+    return b;
+}
+Declaring the argument x to be unsigned ensures that when it is right-shifted,vacated bits will be filled with zeros,not sign bits,regardless of the machine the program is run on.
+将x说明为无符号的整数是为了保证;当将x右移时,不管该函数运行于什么机器上,左边空出的各位能用0(而不是符号位)填满.
+    Quite apart from conciseness,assignment operators have the advantage that they correspond better to the way people think.
+    除了简明外,这类赋值运算符还有一个其表示方式与人们的思维习惯比较接近的优点.
+We say "add 2 to i" or "increment i by 2," not "take i,add 2,then put the result back in i."Thus the expression i += 2 is preferable to i = i + 2.In addition,for a complicated expression like
+我们通常会说"把2加到i上"或"i加上2",而不说"取i,加上2,再把结果放回到i中",因此表达式i+=2比i=i+2要好.另外,对于复杂的表达式如
+        yyval[yypv[p3+p4] + yypv[p1+p2]] +=2
+the assignment operator makes the code easier to understand,since the reader dosn't have to check painstakingly that two long expressions are indeed the same,
+这种赋值运算符使程序代码更容易理解,读者不需要费心地区检查两个长表达式是否完全一样,
+or to wonder why they're not.And an assignment operator may even help a compiler to produce efficient code.
+也无需为两者为什么不一样而感到疑惑不解.而且,这种赋值运算符有助于编译程序产生高效的目标代码.
+    We have already seen that the assignment statement has a value and can occur in epxressions;the most common example is
+    我们已经看到,赋值语句有一个值,而且可以用在表达式中.最常见的例子是:
+        while((c=getchar())!=EOF)
+The other assignment operators(+=,-=,etc.) can also occur in expressions,although this is less frequent.
+其他赋值运算符(即符合运算符+=,-=等)也可以用在表达式中,尽管这种方式比较少见.
+    In all such expressions,the type of an assignment expression is the type of its left operand,and the value is the value after the assignment.
+    在所有这类表达式中,赋值表达式的类型就是左运算分量的类型.值也是在赋值后左运算分量的值.
+ 
+Exercise 2-9. In a two's comppement number system,x &= (x-1) deletes the rightmost 1-bit in x.Explain why.Use this observation to write a faster version of bitcount.
+
+
+2.11 Conditional Expressions
+    The statements
+    语句
+        if(a>b)
+            z = a
+        else
+            z = b;
+compute in z the maximum of a and b.The conditional expressions,written with the ternary operator "?:",provides an alternate way to write this and similar constructions.In the expression
+用于求a与b中的最大值并将其放到z中.作为另一种方法,可以用条件表达式,使用3元运算符"?:"来写这个程序以及类似的代码段.表达式
+        expr1 ? expr2 : expr3
+the expression expr1 is evaluated first.If it is non-zero(true),then the expression expr2 is evaluated,and that is the value of the conditional expression.Otherwise expr3 is evaluated,and that is the value.
+首先计算表达式1,如果其值不等于0(为真),则计算表达式2的值,并以该值作为条件表达式的值;否则计算表达式3的值,并以该值作为条件表达式的值.
+Only one of expr2 and expr3 is evaluated.Thus to set z to the maximum of a and b.
+表达式2与表达式3只有一个会被计算.下面是求a与b中最大值放到z中的另一种写法.
+        z = (a>b) ? a : b;  /* z = max(a,b) */
+    It should be noted that the conditional expression is indeed an expression,and it can be used wherever any other expression can be.If expr2 and expr3 are of different types,
+    应该注意到,条件表达式就是一种表达式,它可以用在其他表达式能用的所有地方.如果表达式2和表达式3具有不同类型.
+the type of the result is determined by the conversion rules discussed earlier in this chapter.For example,if f is a float and n is an int,then the expression
+那么结果的类型由前面讨论的转换规则决定.例如,如果f为float类型,n为int类型,那么表达式
+        (n > 0 ) ? f : n
+is of type float regardless of whether n is positive.
+的类型为float,无论n是不是正的.
+    Parentheses are not necessary around the first expression of a conditional expression,since the precedence of ?: is very low,just above assignment.
+    条件表达式中用于括住第一个表达式的圆括号并不是必须的,这是因为条件运算符?:的优先级非常低,仅高于赋值运算符.
+They are advisable anyway,however,since they make the condition part of the expression easier to see.
+但我们还是建议使用圆括号,因为这可以使表达式的条件部分易于阅读.
+    The conditional expression often leads to succinct code.For example,this loop prints n elements of an array,10 per line,
+    条件表达式常常使代码变得简洁.例如,下面这个循环语句打印数组中的n个元素,每行打印10个元素,
+with each column separeated by one blank,and with each line(including the last) terminated by a new line.
+每一列之间用一个空格隔开,每行用一个换行符结束(包括最后一行)
+        for( i = 0;i<n;i++)
+            printf("%6d%c",a[i],(i%10==9 || i==n-1)? '\n':' ');
+A newline is printed after every tenth element,and after the n-th.All other elemetns are followed by one blank.This might look tricky,but it's more compact than the equivalent if-else.Another good example is
+在每10个元素之后以及在第n个元素之后都要打印一个换行符,所有其他元素后都要跟一个空格,看起来比较麻烦,但比if-else结构紧凑.下面是使用条件运算符的好例子.
+        printf("You have %d item%s.\n",n,n==1?"":"s");
+ 
+Exercise 2-10.Rewrite the function lower,which converts upper case letters to lower case,with a conditional expression instead of if-else.
+    
+
+
+2.12 Precedence and Order of Evaluation
+    Table 2-1 summarizes the rules for precedence and associativity of all operators,including those that we have not yet discussed.Operators on the same line have the same precedence;
+    表2-1总结了所有运算符的优先级与结合律规则,包括尚未讨论的一些规则.同一行的各个运算符具有相同的优先级.       
+rows are in order of decreasing precedence,so,for example,*,/,and % all have the same precedence,which is higher than that of binary + and -.The "operator" () refers to function call.
+纵向看越往下优先级越低.例如,*,/和%具有相同的优先级,它们优先级高于二元运算符+与-.运算符()指函数调用.    
+The operators -> and . are used to access members of structures;they will be covered in Chapter 6,along with sizeof(size of an object).
+运算符->与.用于访问结构成员,第六章将讨论这两个运算符与sizeof(对象大小)运算符.
+Chapter 5 disscusses * (indirection through a pointer) and & (address of an object),and Chapter 3 discusees the comma operator.
+第五章将讨论运算符*(用指针间接访问)与&(对象的地址),第三章讨论逗号(,)运算符.
+         TABLE 2-1 PRECEDENCE AND ASSOCIATIVITY OF OPERATOR
+
+                Unary &,+,=,and * have higher procedence than the binary forms.
+    Note that the precedence of the bitwise operators &,^,and | falls below == and !=.This implies that bit-testing expressions like
+    注意,按位运算符&,^与|的优先级比等于运算符==与!=低.这意味着,在诸如,
+        if((x & MASK) == 0) ...
+must be fully parenthesized to give proper results.
+中,位测试表达式必须用换括号,才能得到正确的结果.
+    C,like most languages,does not specify the order in which the operands of an operator are evaluated.(The exceptions are &&,||,?:,and ',')For example,in a statement like
+    C语言,像大多数语言一样,没有指定同一运算符的几个运算分量的计算次序(&&,|,?:与','除外),例如,语句
+        x = f() + g();
+f may be evaluated before g or vice versa;thus if either f or g alters a variable on which the other depends,x can depend on the order of evaluation.
+一类的语句中,f()可以在g()之前计算,也可以在g()之后计算.因此,如果函数f或g中改变了另一个函数所要使用的变量的值,那么x的结果值可能依赖于这两个函数的计算次序.
+Intermediate results can be sotred in temporary variables to ensure a particular sequence.
+为了保证特定的计算次序,可以把中间结果保存到临时变量中.
+    Similarly,the order in which function arguments are evaluated is not specified,so the statement
+    同理,在函数调用中变量的次序也是未指定的,所以语句
+        printf("%d %d\n",++n,power(2,n));
+can produce different results with different compilers,depending on whether n is incremented before power is called.The solution,of course,is to write
+对不同的编译器可能会产生不同的结果(视n加一运算是在power调用之前还是之后而定),为了解决这个问题,需要这样改写
+        ++n;
+        printf("%d %d\n",n,power(2,n));
+    Function calls,nested asignment statements,and increment and decrement operators cause "side effects" - some variable is changed as a by-product of the evaluation of an expression.
+    函数调用,嵌套的赋值语句,加一与减一运算都有可能引起"副作用"--作为表达式求值得副产品,改变了某些变量的值.
+In any expression involving side effects,there can be subtle depenedencies on the order in which variables taking part in the expression are updated.One unhappy situation is typified by the statment
+在涉及到副作用的表达式中,对作为表达式一部分的本来的求值次序存在着微妙的依赖关系.下面的表达式语句是这种使人讨厌的情况的一个典型例子.
+        a[i] = i++;
+The question is whether the subscript is the old value of i or the new.Compilers can interpret this in different ways,and generate different answers depending on their interpretation.
+问题是,数值下标的值i是旧值还是新值.编译程序对之可以有不同的解释,并视不同的解释产生不同的结果.
+The standard intentionally leaves most such matters unspecified.When side effects(assignment to variables) take place within an expression is left to the discretion of the compiler,
+C语言标准故意留下许多诸如此类的问题而未作具体规定.何时处理表达式中的副作用(对变量赋值)是各个编译器程序的事情,
+since the best order depends strongly on machine architecture.
+因为最好的求值次序取决于机器结构.
+(The standard does specify that all side effects on arguments take effect before a function is called,but that would not help in the call to printf aobve.)
+(标准明确规定了所有变量的副作用都必须在该函数被调用之前生效,但这对上面的printf函数的调用没有什么好处.)
+    The moral is that writing code that depends on order of evaluation is a bad programming practice in any language.Naturally,it is neccessary to know what things to avoid,
+    从风格角度看,用任何语言编写程序时,编写依赖于求值次序的代码不是一种好的程序设计习惯.自然地,我们需要知道哪些事情需要避免,
+but if you don't know how they are done on various machines,you won't be tempted to take advantage of a particular implementation.
+但如果不知道她们在各种机器上是如何执行的,那么不要试图去利用特定的实现.
+ 
+ 

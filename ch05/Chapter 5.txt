@@ -1,0 +1,1001 @@
+﻿CHAPTER 5:Pointers an Arrays
+    A pointer is a variable that contains Address of a variable.Pointers are much used in C,partly because they are sometimes the only way to express a computation,
+    指针是用于存放另一个变量的地址的变量.指针在C中应用广泛,部分是因为它们有时是表达计算的唯一方法,
+and partly because they usually lead to more compact and efficient code than can be obtained in other ways.Pointers and arrays are closely related;
+部分因为是较之其他方法指针通常产生更简洁和高效的代码.指针和数组关系非常密切;
+this chapter also explores this relationship and show how to exploit it.
+本章将探讨这种关系并且演示如何利用它们.
+    Pointers have been lumped with the goto statement as a marvelous way to create impossible-to-understand programs.This is certainly ture when they are used carelessly,
+    指针和goto语句一样会产生难以理解的程序.当使用指针不注意时更加如此,
+and it is easy to create point soemwhere unexpected.With discipline,however,pointers can also be used to achieve clarity and simplicity.This is aspect that we will try to illustrate.
+并且容易在程序中创建指向未预期地址的指针.然而,如果小心地使用指针,则指针能够建立清楚和简单的程序.这个方面是我们将要说明的.
+    The main change in ANSI C is to make explicit the rules about how pointers can be manipulated,in effect mandating what good programmers already practice and good compilers already enforce.
+    ANSI C中的主要的变化是使得操作指针的规则更加清晰,这些规则实际上优秀的程序员和好的编译器程序已经采用.
+In addition,the type void * (pointer to void) replaces char * as the proper type for a generic pointer.
+此外,ANSI C中用类型void*(指向void的指针)替换char *作为通用指针的类型.
+
+
+5.1 Pointers and Addresses
+    Let us begin with a simplified picture of how memory is organized.
+    我们先用简化的图来说明内存是如何组织的.
+A typical machine has an array of consecutively numbered or addressed memory cells that may be manipulated individually or in contiguous groups.
+机器的存储器通常由连续编号或编址的存储单元序列组成,这些存储单元能够通过单独的或者相连成组的方式操作.
+One common situation is that any byte can be a char,a pair of one-byte cells can be treated as a short integer,and four adjacent bytes form a long.
+通常的情况是,一个字节能够表示一个字符(char),一对相连的存储单元表示一个短整数(int),而四个相邻的字节构成一个长整数(long).
+A point is a group of cell(often two or four) that can hold an address.So if c is a char and p is a pointer that points to it,we could represent this situation this way:
+一个指针由能够存放一个地址的一组存储单元组成(通常是2个或4个字节).如果c是一个char并且让p是指向c的指针,我们能够通过下图表示其关系:
+                                
+    The unary operator & gives the address of an object,so the statement
+    一元运算&用于取一个对象的地址,所以语句
+        p = &c;
+assigns the address of c to the variable p,and p is said to "point to" c.The & operator only applies to objects in memory:variables and array elements.
+用于将c的地址赋值给变量p,并且说p是"指向"c的指针.取地址运算符&操作仅仅作用于内存中的对象:变量和数组元素.
+It can not be applied to expressions,constants,or register variable.
+它不能作用于表达式,常量,或者寄存器变量.
+    The unary operator * is the indirection or dereferencing operator;when applied to a pointer,it accesses the object the pointer points to.Suppose x and y are integers and ip is a point to int.
+    一元运算符*是间接寻址或间接引用运算符;当作用于指针时,它用来访问由指针所指向的对象.假设x和y都是整数,并且ip是一个指向整数的指针.
+This artificial sequence shows how to declare a pointer and how to use & and *:
+下面的代码段展示了如何在程序中说明指针和怎样使用运算符&和*;
+        int x = 1,y = 2,z[10];
+        int *ip; /* ip is a pointer to int */
+        ip = &x; /* ip now points to x */
+        y = *ip; /* y is now 1 */
+        *ip = 0; /* x is now 0 */
+        ip = &z[0]; /* ip now points to z[0] */
+The declarations of x,y and z are what we've seen all along.The declaration of the pointer ip,
+在前面的章节我们已经对变量x,y和z进行了说明.再对指针ip进行声明如下,
+        int *ip;
+is intended as a mnemonic;it says that the expression *ip is an int.The syntax of the declaration for a variable mimics the syntax of expressions in which the variable might appear.
+其目的是为了便于记忆;它的意思是表达式*ip是一个int类型的.这种变量声明的语法模仿了可能包含该变量表达式的语法.
+This reasoning applies to function declarations as well,For example,
+同样对于函数声明也可以这样做,例如,
+        double *dp,atof(char *);
+says that in an expression *dp and atof(s) have value of type double,and that the argument of atof is a pointer to char.
+表示在一个表达式中*dp和atof(s)都具有doube类型的值,并且atof的参数是一个指向char类型的指针.
+    You should also note the implication that a pointer is constrained to point to a particular kind of object:every pointer point to a specific data type.
+    你应该注意的是,一个指针只能指向一个特定类型的对象:每一个指针对象指向确定的数据类型.
+(There is one exception:a "pointer to void" is used to hold any type of pointer but can not be dereferenced itself.We'll come back to it in Section 5.11)
+(这里有一个例外:"指针指向空"可以转换成指向任何对象类型的指针,但是不能够间接引用它自身,我们将在5.11节讨论)
+    If ip points to the integer x,then *ip can occur in any context where x could,so
+    如果ip指针指向整数x,那么在x可以出现的任何上下中*ip同样可以出现,所以
+        *ip = *ip + 10;
+increments *ip by 10.
+表示*ip的值增加10.
+    The unary operators * and & bind more tightly than arithmetic operators,so the assignment
+    一元操作符*和&的优先级比算术操作符优先级高,所以赋值操作
+        y = *ip + 1
+takes whatever ip points at,adds 1,and assigns the result to y,while
+取出ip指向的对象值,然后加1,并且将结果赋值给y,而
+        *ip += 1
+increments what ip points to,as do
+将ip指向的对象的值增加1,如
+        ++*ip
+and 
+        (*ip)++
+The parentheses are necessary in this last example;without them,the expression would increment ip instead of what it points to,because unary operators like * and ++associate right to left.
+在后一个例子中括号是必须的;离开它们,表达式将会ip进行加1运算而不是对ip所指向的值加1,因为一元操作符像*和++按右到左的顺序和运算分量结合.
+    Finally,since pointers are variables,they can be used without dereferencing.For example,if iq is another pointer to int,
+    最后,由于指针也是变量,它们可以不需要间接引用的方法就可以使用它们,例如,如果iq是令一个指向整数的指针,
+        iq = ip;
+copies the contens of ip into iq,thus making iq point to whatever ip pointed to.
+拷贝ip的内容给iq,这样使得iq指向ip指向的对象.
+
+
+5.2 Pointers and Function Arguments
+    Since C passes arguments to functions by value,there is no direct way for the called function to alter a variable in the calling function.For instance,
+    由于C以按值调用的方式将变量传递给函数.因而被调用函数不能直接更改调用函数中变量的值.例如,
+a sorting routine might exchange two out-of-order elements with a function called swap.It is not enough to write
+在排序程序中可能需要一个叫做swap的函数来交换两个次序颠倒的元素.不能够这样写swap函数
+        swap(a,b);
+where the swap function is defined as
+这里swap函数定义如下:
+        void swap(int x,int y)  /* WRONG */
+        {
+            int temp;
+            temp = x;
+            x = y;
+            y = temp;
+        }
+Because of all by value,swap can't affect the arguments a and b in the routine that called it.The function above only swaps copies of a and b.
+由于按值调用的缘故,swap函数不能影响调用它的子程序中的变量a和b的值.函数只能仅交换临时变量区中与a和b相应的临时拷贝的值.
+    The way to obtain the desired effect is for the calling program to pass pointers to the values to the changed:
+    调用程序想要获得预期结果,它应将指向所要交换值的指针传递给被调用函数swap:
+        swap(&a,&b);
+Since the operator & produces the address of a variable,&a is a pointer to a.In swap itself,the parameters are declared to be pointers,and the operands are accessed indirectly througth them.
+因为操作符&用来取一个变量的地址,这样&a就是一个指向变量a的指针,swap函数本身将它所有的形式参数都是声明为指针,并且通过这些指针来间接访问它们所指向的运算分量.
+        void swap(int *px,int *py) /* interchange *px and *py */
+        {
+            int temp;
+            temp = *px;
+            *px = *py;
+            *py = temp;
+        }
+Pictorially:
+
+    Pointer arguments enable a function to access and change objects in the function that called it.As an example,
+    指针类型的变量使得被调用函数能够直接访问和改变调用函数中对象的值.例如,
+consider a function getint that performs free-format input conversion by breaking a stream of characters into integer values,one integer per call.
+考虑一个这样的例子:函数getint通过将字符流分解成整数数值而完成自由格式输入的转换.它每次调用得到一个整数.
+getint has to return the value it found and also signal end of file when there is no more input.These values have to be passed back by separate paths,
+getint函数能够返回转换后的值,并且输入结束后要能够发出已到文件末尾的信号.这些值能够通过各自的路径返回,
+for no matter what value is used for EOF,that c could  be the value of an input integer.
+EOF不管用什么值表示都可以,当然也可以用一个整数值表示.
+    One solution is to have getint return the end of file status as its function value,while using a pointer argument to store the converted integer back in the calling function.
+    一个方案是让getint将表示文件结束状态作为函数值返回,同时使用一个指针参数来存储转换后的整数,从而传递给调用函数.
+This is the scheme used by scanf as well;see Section 7.4.
+函数scanf的的实现也采用了这个方法;具体细节见Section7.4节.
+    The following loop fill fils an array with integer by calls to getint:
+    下面的循环语句调用getint函数来给数组元素赋值:
+        int n,array[SIZE],getint(int *);
+        for(n=0;n<SIZE && getint(&array[n]) != EOF;n++)
+            ;
+Each call set array[n] to the next integer found in the input and increment n.Notice that it is essential to pass the  address of array[n] to getint.
+循环语句每一次调用getint就把输入流中的下一个整数赋给数组元素array[n]并且自增n,注意必须将array[n]的地址传递给getint.
+Otherwise there is no way for getint to communicate the converted integer back to the caller.
+否则函数getint就无法将转换后的值返回给调用者.
+    Our version of getint returns EOF for end of file,zero if the next input not a number,and a positive value if the input contins a valid number.
+    我们的getint版本返回EOF表示文件结束,当下一个输入不是一个数字时返回0,并且输入是一个有效数字时返回一个正数:
+#include <stdio.h>
+#include <ctype.h>
+
+int getch(void);
+void ungetchar(int);
+
+int main(){}
+
+/* getint: get next integer from input into *pn */
+int getint(int *pn)
+{
+	int c,sign;
+	while(isspace(c=getch())) /* skip with space */
+		;
+	if(!isdigit(c) && c !=EOF && c!='+' && c!='-')
+	{
+		ungetch(c);
+		return 0;
+	}
+	sign = ( c == '-' )?-1:1;
+	if(c=='+' || c=='-')
+		c = getch();
+	for(*pn = 0;isdigit(c);c=getch())
+		*pn = 10 * *pn + (c - '0');
+	*pn *= sign;
+	if(c!=EOF)
+		ungetch(c);
+	return c;
+}
+Throughout getint,*pn is used as an ordinary int variable.We have also used getch and ungetch(described in Section 4.3) so the one extra character that must be read can be pushed back onto the input.
+在getint中,*pn用作普通的整数类型变量.我们还使用getch和ungetch(在Section 4.3节)这样,函数getint中必须读出的一个额外的字符就可以写回到输入流中了.
+
+Exercise 5-1. As written,getint treats a + or - not followed by a digit as a valid representation of zero.Fix it to push such a character back on the ipnut.
+
+Exercise 5-2.Write getfloat,the floating-point analog of getint.What type does getfloat return as its function value?
+
+
+5.3 Pointers and Arrays
+    In C,there is a strong relationship between pointers and arrays,strong enough that pointers and arrays should be discussed simultaneously.
+    在C语言中,指针和数组之间的关系十分密切,因此可以同时讨论指针和数组.
+Any operation that can be achieved by array subscripting can also be done with pointers.The pointer version wil in general be faster but,at least to the uninitiated,somewhat harder to understand.
+数组下标能完成的任何操作都可以用指针来实现.通常而言,指针的版本比数组下标要快,对于缺乏经验的人来说,指针通常难以理解.
+    The declaration
+    声明语句
+        int a[10];
+defines an array a of size 10,that is,a block of 10 consecutive objects named a[0].a[1],...,a[9].
+定义一个大小为10的数组a,既定义了一个由10个存储在内存相临区域内的名为a[0],a[1],...,a[9]的对象组成的集合.
+
+The notation a [i] refers to the i-th element of the array.If pa is a pointer to an integer,declared as 
+其中符号a[i]表示数组的第i个元素.如果pa是一个指向integer类型的指针,定义
+    int *pa;
+sets pa to point to element zero of a;that is,pa contains the address of a[0]
+设置pa指向数组a的第0个元素,就是说,pa包含a[0]的地址值.
+
+Now the assignment
+则赋值语句
+    x = *pa;
+will copy the contents of a[0] into x.
+将拷贝a[0]的内容给x.
+    If pa points to a particular element of an array,then by definition pa+1 points to the next element,pa+i points i elements after pa,and pa-i points i elements before,Thus,if pa points to a[0],
+    如果pa指针指向某一个数组中的特定的元素,那么根据定义,pa+1指向数组的下一个元素,pa+i指向数组元素之后的第i个元素,那么,如果pa指向元素a[0],
+        *(pa+1)
+refers to the contents of a[1],pa+i is the address of a[i],and *(pa+i) is the contens of a[i].
+表示数组元素a[1]的内容,pa+i表示a[i]的地址,而*(pa+i)表示数组元素a[i]的内容.
+
+    These remarks are true regardless of the type or size of the variables in the array a.
+    无论数组a中的变量的具有什么样的类型或大小,上面的结论都是正确的.
+The meaning of "adding 1 to a pointer," and by extension,all pointer arithmetic,is that pa+1 points to the next object,and pa+i points to the i-th object beyond pa.
+"指针加1"的意思是pa+1指向pa所指向的下一个对象,pa+i指向pa所指向对象的第i个对象,这可以推广到所有的指针运算.
+    The correspondence between indexing and pointer arithmetic is very close.By definition,the value of a variable or expression of type array is the address of element zero of the array.
+    在下标(indexing)和指针(pointer)运算有着很密切的关系.按照定义,一个类型为数组的变量或表达式的值是该数组的第0个元素的地址.
+Thus after the asignment
+因此赋值语句
+        pa = &a[0];
+pa and a have identical values.Since the name of an array is a synonym for the location of the initial elements,the assignment pa=&a[0] can also be writen as 
+pa和a具有相同的值.由于一个数组的名字即是该数组第0个元素的位置,所以赋值语句pa=&a[0]可以写成
+        pa = a ;
+    Rather more surprising,at least at first sight,is the fact that a reference to a[i] can also be written as *(a+i).In evaluating a[i],C converts it to *(a+i) immediately;the two forms are equivalent.
+    这一点至少初看起来很令人吃惊,事实上引用a[i]同样可以写成*(a+1).在求数组a[i]的值时,C语言实际上先将其转换成*(a+i)的形式再求值;这两种形式是等价的.
+Applying the oerator & to both parts of the equivalence,it follows that &a[i] and a+i are also identical:a+i is the address of the i-th element beyond a.As the other side of this coin,if pa is a pointer,
+当把取地址运算符&应用与这两种等价的形式,可以知道&a[i]和a+i也是相同的:a+i是a之后第i个元素的地址.相应的,如果pa是一个指针,
+expressions may use it with a subscript;pa[i] is identical to *(pa+i).In short,an array-and-index expression is equivalent to one written as a pointer and offset.
+表达式中可使用具有下标的指针pa,pa[i]与*(pa+i)的含义一样.简单说,一个数组和下标实现的表达式可等价地用指针和偏移量来实现.
+    There is one difference between an array name and a pointer that must be kept in mind.A pointer is a variable,so pa=a and pa++ are legal.But an array name is not a variable;
+    然而,必须注意到,数组名字和指针之间仍然存在着一点区别.指针是一个变量,所以pa=a和pa++都是合法的.但是数组名称不是一个变量;
+constructions like a =pa and a++ are illegal.
+因而诸如a=pa和a++这样的语句都是非法的.
+    When an array name is passed to a function,what is passed is the location of the initial element.Within the called function,this argument is a local variable,and so an array name parameter is a pointer,
+    当把一个数组的名字传递给一个函数时,实际上传递的是数组的第一个元素的位置.由于一个数组名字的参数就是一个指针,所以在被调用函数中,与数组名字参数对应的是一个包含地址值的局部变量,
+that is,a variable containing an address.We can use this fact to write another version of strlen,which computes the length of a string.
+所以,变量包含了地址.可以利用这个编写另一个版本的strlen函数,用来计算一个字符串的长度.
+        /* strlen:return length of string s */
+int strlen(char *s)
+{
+	int n;
+	for(n=0;*s!='\0';s++)
+		n++;
+	return n;
+}
+Since s is a pointer,incrementing it is perfectly legal;s++ has no effect on the character string in the function that called strlen,but merely increments strlen's private copy of the pointer.
+由于s是一个指针类型的变量,所以对其进行加一运算是合法的;s++不会影响调用strlen的函数中的字符串,它仅仅对该指针在strlen函数中的私有拷贝进行操作.
+That means that calls like
+因而下面这些函数调用
+    strlen("hello,world"); /* string constant */
+    strlen(array);    /* char array[100] */
+    strlen(ptr);    /* char *ptr */
+all work.
+    As formal parameters in a function definition,
+    在函数定义中作为函数的形式参数,
+       char s[];
+and 
+       char *s;
+are equivalent;we prefer the latter because it says more explicitly that the parameter is a pointer.When an array name is passed to a function,
+都是等价的;我们更喜欢后一种形式,因为它比前者更明白地表明该参数是一个指针.当一个数组名被传递给函数时,
+the function can at its converience believe that it has been handed either an array or a pointer,and manipulate it accordingly.It can even use both notations if seems appropriate and clear.
+函数能够通过传递的方便来判定传递给它的是数组还是指针,然后按相应的方式操纵该参数.为了清楚而恰当的描述函数,在函数中甚至能够同时使用数组和指针这两种方式.
+    It is possible to pass part of an array to a function,by passing a pointer to the beginning of the subarray.For example,if a is an array,
+    也可以通过传递指向子数组的指针的方法把数组一部分作为参数传递给函数,例如,
+        f(&a[2])
+and 
+        f(a+2)
+both pass to the function f the address of the subarray that starts at a[2].Within f,the parameter declaration can read
+都是把起始于a[2]的子数组处传递给函数f.在函数f中,参数说明的形式可以为:
+    f(int array[]){...}
+or 
+    f(int *arr){...}
+So as far as f is concerned,the fact that the parmeter refers to part of a larger array is of no consequence.
+因此就函数f本身而言,当其参数是一个指向较大数组的子数组的指针时并不会有什么影响.
+    If one is sure that the elements exist,it is also possible to index backwards in an array;p[-1],p[-2].and so on are syntactically legal,and refer to the elements that immediately precede p[0].
+    如果确信元素存在,能够通过下标指向后面的元素;诸如p[-1],p[-2]等这样的表达式在语法上都是合法的.它们用于引用位于p[0]之前的某个元素.
+Of courese,it is illegal to refer to object that are not within the array bounds.
+当然,引用数组边界之外的对象是非法的.
+
+
+5.4 Address Arithmetic
+    If p is a pointer to some element of an array,then p++ increments p to point to the next element,and p+=i increments it to point i element beyond where it currently does.
+    如果p是一个指向数组某元素的指针,那么p++对p进行加1运算使它指向下一个元素,而p+=i对p进行增量运算使它指向指针所指向的元素之后的第i个元素.
+These and similar constructions are the simplest forms of pointer or address arithmetic.
+这类运算是指针或地址的运算中最简单的形式.
+    C is consistent and regular in its approach to address arithmetic;its integration of pointers,arrays,and address arithmetic is one of the strengths of the lanaguage.
+    C语言中地址的算术运算很有规律,将指针,数组和地址的算术运算集成在一起是C语言的一大特色.
+Let us illustrate by writing a rudimentary storage allocator.There are two routines.The first,alloc(n),returns a point p to n consecutive character positions,
+让我们通过书写基本存储分配为例来说明.它由下面两个函数组成.第一个函数,alloc(n),返回一个指向n个连续字符存储单元的指针,
+which can be used by the caller of alloc for stroing character.The second,afree(p),releases the storage thus acquired so it can be re-used later.
+alloc函数的调用者可以利用该指针来存储字符序列.第二个函数afree(p),释放已分配的存储空间,因此以后需要时它们可以再分配.
+The routines are "rundimentary" because the calls to afree must be made in the opposite order to the calls made on alloc.That is,the storage managed by alloc and afree is a stack,or last-in,first-out list.
+这两个函数都是"基本函数",因为调用afree必须与调用alloc函数以相反的次序.也就是说,alloc和afree是以栈式进行存储管理,或者list-in,first-ot的列表方式.
+The standard library provides analogous functions called malloc and free that have no such restrictions;in Section 8.7 we will show how they can be implemented.
+标准库提供了相似的函数叫做malloc和free,但是没有上述的限制;在8.7节,我们将展示如何实现这些函数.
+    The easiest implementation is to have alloc hand out pieces of a large character array that we will call allocbuf.This array is private to alloc and afree.Since they deal in pointers,
+    最容易的实现方法是让alloc对一个很大字符串数组allocbuf中的空间进行分配,我们将叫做allocbuf数组.这个数组是alloc和afree的私有数组.由于函数处理通过指针,
+not array indices,no other routine need know the name of the array,which can be declared static in the source file containing alloc and afree,and thus be invisible outside it.In practical implementations,
+而不是数组下标,没有其他函数需要知道数组的名字,因为可以在包含alloc和afree函数的源文件中将数组声明为static类型,这样对外部就不可见了.在实际的实现中,
+the array may well not even have a name;it might instead be obtained by calling malloc or by asking the operating system for a pointer to some unnamed block of storage.
+该数组最好是没有名字;它可以通过调用malloc或者通过请求操作系统申请一个指向无名存储区域的指针来得到.
+    The other information needed is how much of allocbuf has been used.We use a pointer,called allocp,that points to the next free element.When alloc is asked for n characters,
+    另一个需要知道的信息是allocbuf中有多少空间被使用了.使用指针allocp指向allocbuf数组的下一个空闲单元.当向alloc申请n个字符时,
+it checks to see if there is enough room left in allocbuf.If so,alloc returns the current value of allocp(i.e.,the beginning of the free block),then increments it by n to point to the next free area.
+alloc首先检查allocbuf数组看是否有足够的空间分配.如果有,alloc返回当前allocp的值(即,空闲块的开始位置),然后将allocp增加n使其指向下一个空闲区域.
+If there is no room,alloc returns zero.afree(p) merely sets allocp to p if p is insde allocbuf.
+如果空闲空间不够,alloc返回0.如果p在allocbuf之内,afree(p)仅仅设置allocp的值为p.
+    
+#define ALLOCSIZE 10000 /* size of available space */
+static char allocbuf[ALLOCSIZE]; /* size of available space */
+static char *allocp = allocbuf; /* next free position */
+
+char *alloc(int n)
+{
+	if(allocbuf + ALLOCSIZE - allocp >= n) /* it fits */
+	{
+		allocp += n;
+		return allocp - n; /* old p */
+	}
+	else /* not enough room */
+	{
+		return 0;
+	}
+}
+
+void afree(char *p) /* free storage pointed to by p */
+{
+	if(p>=allocbuf&& p<allocbuf+ALLOCSIZE)
+		allocp = p;
+}
+    In general a pointer can be initialized just as any other variable can,
+    一般而言,可以像对其他变量一样对指针进行初始化,
+thourgh normally the only meaningful values are zero or an expression involving the addresses of previously defined data of appropriate type.The declaration 
+尽管在一般情况下,指针的有意义值只能为0或表示已定义的某一类型的数据的地址的表达式.例如,声明语句,
+        static char *allocp = allocbuf;
+defines allocp to be a character pointer and initializes it to point to the begining of allocbuf,which is the next free position when the program starts.This could be also been written
+定义allocp为字符指针并且将它初始化为allocbuf的起始地址,该起始地址是程序开始运行时的下一个空闲为位置.也可以写成如下
+    static char *allocp = &allocbuf[0];
+since the array name is the address of the zeroth element.
+因为该数组的名字实际上是其第0个元素的地址.
+    The test
+        if(allocbuf+ALLOCSIZE-allocp>= n){ /* it fits */ }
+checks if there's enough room to satisfy a request for n characters.If there is,the new value of allocp would be at most one beyond the end of allocbuf.If the request can be satisfied,
+检查是否有足够的空间来满足n个字符串的请求.如果是,allocp的新值将移动至多比allocbuf大1的位置.如果请求能被满足,
+alloc returns a pointer to the beginning of a block of characters(notice the declaration of the function itself).If not,alloc must return some signal that no space is left.
+alloc返回一个指向所需大小的字符块首地址的指针(注意函数本身的说明).否则,alloc必须返回某种信号表示没有足够的空间来分配.
+C guarantees that zero is never a valid address for data,so a return value of zero can be used to signal an abnormal event,in this case,no space.
+C语言保证0不是数据的有效地址,因而0返回值可以用来表示发生了一个异常事件,在本例中,0返回值表示没有足够的空间可以分配.
+    Pointers and integers are not interchangable.Zero is the sole exception:the constant zero may be assigned to a pointer,and a pointer may be compared with the constant zero.
+    指针和整数不能相互转换.但0是例外:常量0可以赋给指针,指针也可以和常量0比较.
+The symbolic constant NULL is often used in place of zero,as a mnemonic to indicate more clearly that this is a special value for a pointer.NULL is standardly defined in <stddef.h>,
+程序中符号常量NULL经常用来替换常量0,这样有助于更清楚地记得常量0是指针的一个特殊值.常量符号NULL在标准头文件<stddef.h>中定义,
+although it also appears in several other headers like <stdio.h> and <stdlib.h>.We will use NULL henceforth.
+同样出现在几个头文件中,像<stdio.h>和<stdlib.h>.我们后面将使用NULL.
+    Tests like
+        if(allocbuf + ALLOCSIZE - allocp >=n) {  /* it fits */ }
+and     
+        if(p>=allocbuf && p< allocbuf + ALLOCSIZE)
+show several importatnt facets of pointer arithmetic.First,pointers may be compared under certain circumstances.If p and q point to members of the same array,then relations like ==,!=,<,>=,etc.,
+表明几个指针运算的重要部分.首先,在某些情况下对指针可以进行比较运算.例如,如果指针p和q指向某些数组的成员,那么它们之间就可以进行诸如==,!=,<,>=,等关系比较运算.
+work properly.For example,
+正常使用.例如,
+    p<q
+is true if p points to an earlier member of the array than q does.Any pointer can be meaningfully compared for equality or inequality with zero.
+关系成立.如果p指针指向数组成员所在q所指向的数组成员位置之前.任何指针与0进行相等或不等的比较运算都有意义.
+But the behavior is undefined for arithmetic or comparisons with pointers that do not point to members of the same array.
+但对指向不同数组成员的指针之间的算术或比较运算,其执行行为没有定义.
+(There is one exception:the address of the first element past the end of an array can be used in pointer arithmetic.)
+(这里有一个特列:指针的运算可以使用一个数组的第一个元素的地址.)
+    Second,we have already observed that a pointer and an integer may be added or subtracted.The construction
+    其次,如前面所见,指针可以和整数进行相加或相减运算.例如,表达式
+        p + n
+means the address of the n-th object beyond the one p currently points to.This is true regardless of the kind of object p points to;n is scaled according to the size of the objects p points to,
+表明指针p当前所指向对象之后的第n个对象的地址.不管指针p指向的对象是什么类型,以上结论都正确;n根据指针p指向的对象尺寸按比例缩放,
+whcih is determined by the declaration of p.If an int is four bytes,for example,the int will be scaled by four.
+而p所指向对象的大小决定于p的定义.如果一个整型是4个字节,例如,int类型对应的n就按4的倍数来计算,
+    Pointer subtraction is also valid:if p and q point to elements of the same array,and p<q,then q-p+1 is the number of elements from p to q inclusive.
+    指针的减法也有意义:如果p和q指针都是同一个数组的元素,并且p<q,那么q-p+1就是p到q包含的元素个数.
+This fact can be used to write yet another version of strlen:
+由此可以得到另一个版本的strlen:
+        /* strlen:return length of string s */
+int strlen(char *s)
+{
+	char *p = s;
+	while(*p!='\0')
+		p++;
+	return p-s;
+}
+In its declaration,p is initialized to s,that is,to point to the first character of the string.In the while loop,each character in turn is examined until the '\0' at the end is seen.Because p points to characters,
+在上面的声明中,指针p被初始化为s,即它的指针指向字符串第一个字符.在while循环中,依次检查字符串中的每个字符直到遇到空字符'\0.由于p是指向字符的指针,
+p++ advances p to the next character each time,and p-s gives the number of characters advanced over,that is,the string length.(The number of characters in the string could be too large to store in an int.
+p++每执行一次使得p指向下一个字符的地址,而p-s则给出已经检测过的字符数,即字符串长度.(字符串中字符的数目可能超过整数类型存储的范围.
+The header <stddef.h> defines a type ptrdiff_t that is large enough to hold the signed difference of two pointer values.
+头文件<stddef.h>中定义了一个类型ptrdiff_t足够大来表示两个指针值的差值.
+If we were being very cautious,however,we would use size_t for the return type of strlen,to match the standard library version.size_t is the unsigned integer type returned by the sizeof operator.)
+如果为了谨慎起见,使用size_t类型作为strlen的返回类型,使其匹配标准库函数的版本.size_t是通过sizeof操作返回的无符号整数类型.)
+    Pointer arithmetic is consistent:if we had been dealing with floats,which occupy more storage than chars,and if p were a point to float,p++ would that maintains floats instead of chars,
+    指针运算具有一致性:如果我们处理的是比字符串类型占据更多存储空间的浮点型,并且如果p是一个指向浮点类型指针,那么p++将会使p指向下一个浮点地址,
+merely by changing char to float throughout alloc and afree.All the pointer manipulations automatically take into account the size of the object pointed to.
+因此只需要将alloc和afree函数中所有的char类型替换成float类型就可以得到一个浮点而不是字符的内存分配函数版本.所有的指针运算都会自动考虑它所指对象的大小.
+    The valid pointer operations are assignment of pointers of the same type,adding or subtracting a pointer and an integer,subtracting or comparing two pointers to members of the same array,
+    有效的指针运算包括:相同类型指针之间的赋值运算,指针加或减一个整数值,指向相同的数组中的元素的指针之间的相减或比较运算,
+and assigning or comparing to zero.All other pointer arithmetic is illegal.It is not legal to add two pointers,or to multiply or divide or shift or mask them,
+和将指针赋值为0或与0的比较.其他的指针运算都是非法的.诸如下面情况的运算就是非法的指针运算:指针间的加法或者相乘或相除或位移或掩码处理,
+or to add float or double to them,or even,except for vaoid *,to assign a pointer of one type to a pointer of another type without a cast.
+或者指针加单双精度浮点数的运算,除两者之一是void*类型外,不经强制类型转换就将指向一种类型对象的指针赋值给指向另一种类型对象的指针的运算.
+
+5.6 Pointer Arrays;Pointer to Pointers
+    Since pointers are variables themselves,they can be stored in arrays just as oher varibales can.Let us illustrate by writing a program that will sort a set of text lines into alphabetic order,
+    由于指针本身都是变量,它们能够像其他变量一样存储在数组中.让我们通过编写一个程序来说明,这个程序按字母顺序对由文本行组合的集合进行排序,
+a stripped-down version of the UNIX program sort.
+这是一个UNIX程序中简化版本的排序.
+    In Chapter 3 we presented a Shell sort function that would sort an array of integers,and in Chapter 4 we improved on it with a quicksort.The same algorithms will work,
+    在第三章中我们展示了Shell排序函数,这个函数可以排序整数数组,并且在第四章我们用quicksort来改进它.这些算法本章同样有效,
+except that now we have to deal with lines of text,which are of different lengths,and which,unlike integers,can't be compared or moved in a single operation.
+只不过现在处理的是长度不一的文本行,并且与整数不同的是,这些文本行不能在单个运算中完成比较或移动操作.
+We need a data representation that will cope efficiently and conveniently with variable-length text lines.
+我们需要一个高效并且方便的处理可变长度的文本行的数据表示方法.
+    This is where the array of pointers enters.If the lines to be sorted are stored end-to-end in one long character array,then each line can be accessed by a pointer to its first character.
+    这就很自然的是指针数组.如果待排序的文本行首尾相连地存储在一个数组中,那么每一行能能够通过指向第一个字符的指针来访问.
+The pointers themselves can be sorted in an array.Two line can be compared by passing their pointers to strcmp.When two out-of-order lines have to be exchanged,
+这些指针自身能够存在在一个数组中.于是分别指向两个文本行的指针传递个strcmp函数就可以实现对这两个文本行的比较.当交换两个次序颠倒的文本行时,
+the pointers in the pointer array are exchnaged,not the text lines themselves.
+实际上交换的是指针数组中与这两个文本行相对应的指针,而不是文本行本身.
+
+This eliminates the twin problems of complicated storage management and high overhead that would go with moving the lines themselves.
+这样消除了为了移动文本自身所带来的两个问题,就是复杂的存储管理和高开销.
+    The sorting process has three steps:
+        read all the lines of input
+        sort them
+        print them in order
+As usual,it's best to divide the program into functions that match this natural division,with the main routine controlling the other functions.Let us defer the sorting step for a moment,
+通常,最好的做法是将程序分成若干个和问题自然划分相匹配的函数,通过主函数来控制其他函数执行.关于文本行如何排序这一问题稍后再做说明,
+and concentrate on the data structure and the input and output.
+先集中精力在数据结构的确定和输入输出函数上.
+    The input routine has to collect and save the characters of each line,and build an array of pointers to the lines.It will also have to count the number of input lines,
+    输入程序必须收集和存储每一行文本的字符,并且构建一个指向这些文本行的指针数组.它同样需要统计输入文本函数的行数,
+since that information is needed for sorting and printing.Since the input function can only cope with a finite number of input lines,it can return some illegal line count like -- 1 if too much input is presented.
+因为在排序和打印要用到这一信息.因为输入函数仅能够处理有限的输入文本行数,所以在输入行数太多而超过所限定的最大行数时它返回某个用于表示非法行数的数值,例如-1.
+    The output routine only has to print the lines in the order in which they appear in the array of pointers.
+    输出程序仅仅需要按文本行所对应的指针数组中出现的次序打印这些文本行即可.
+#include <stdio.h>
+#include <string.h>
+
+#define MAXLINES 5000 /* max #line to be sorted */
+
+char *lineptr[MAXLINES]; /* pointers to text lines */
+
+int readlines(char *lineptr[],int nlines);
+
+void writelines(char *lineptr[],int nlines);
+
+void qsort(char *lineptr[],int left,int right);
+
+/* sort input lines */
+main()
+{
+	int nlines; /* number of input lines read */
+	if((nlines=readlines(llineptr,MAXLINES))>=0){
+		qsort(lineptr,0,nlines-1);
+		writelines(lineptr,nlines);
+		return 0;
+	}
+	else{
+		printf("error:input too big to sort\n");
+		return 1;
+	}
+}
+
+#define MAXLEN 1000 /* max length of any input line */
+
+int getline(char *,int);
+char *alloc(int);
+
+/* readlines:read input lines */
+int readlines(char *lineptr[],int maxlines)
+{
+	int len,nlines;
+	char *p,line[MAXLEN];
+	nlines=0;
+	while((len=getline(line,MAXLEN))>0)
+		if(nlines>=maxlines||(p=alloc(len)==NULL)
+			return -1;
+		else{
+			line[len-1] = '\0'; /* delete newline */
+			strcpy(p,line);
+			lineptr[nlines++] = p;
+		}
+		return nlines;
+}
+
+/* writelines:write output lines */
+void writelines(char *lineptr[],int nlines)
+{
+	int i;
+	for(i=0;i<nlines;i++)
+		printf("%s\n",lineptr[i]);
+}
+The function getline is from Section 1.9.
+关于getline函数参见1.9节.
+    The main new thing is the declaration for lineptr:
+    这个例子中,新出现且比较重要的是指针数组lineptr的声明:
+        char *lineptr[MAXLINES]
+says that lineptr is an array of MAXLINES elements,each element of which is a pointer to a char.That is,lineptr[i] is a character pointer,
+它表示lineptr是一个拥有MAXLINES个元素的一维数组,每一个元素都是一个指向字符对象的指针.也就是说,lineptr[i]是一个字符指针,
+and *lineptr[i] is the character it points to,the first character of the i-th saved text line.
+并且*lineptr[i]是该指针指向的第i个文本行的首字符.
+    Since lineptr is itself the name of an array,it can be treated as a pointer in the same manner as in our earlier examples,and writelines can be written instead as 
+    由于lineptr本身就是一个数组的名称,故可以采用与前面的例子相同的方法将其作为指针使用,所以writelines函数可改写为:
+/* writelines: write output lines */
+void writelines(char *lineptr[],int nlines)
+{
+    while(nlines-->0)
+        printf("%s\n",*lineptr++);
+}
+Initially *lineptr points to the first line;each increment advances it to the next line pointer while nlines is counted down.
+循环最初,*lineptr指向第一行;每次执行加一运算就使得*lineptr指向下一行,同时nlines执行减一操作.
+    With input and output under control,we can proceed to sorting.The quicksort from Chapter 4 needs minor changes:the declarations have to be modified,
+    通过掌握了输入和输出函数的实现方法后,我们接着研究处理排序的问题.这里需要对第四章的quicksort函数做一些小改动:首先要修改函数的声明部分,
+and the comparsion operation must be done by calling strcmp.The algorithm remains the same,which gives us some confidence that it will still work.
+其次,需要调用strcmp函数来完成文本行的比较运算.但排序算法依然相同,让我们相信它依然能够有效的工作.
+/* qsort:sort v[left]...v[right] into increasing order */
+void qsort(char *v[],int left,int right)
+{
+	int i,last;
+	void swap(char *v[],int i,int j);
+	if(left>=right) /* do nothing if array contains */
+		return;
+	swap(v,left,(left+right)/2);
+	last = left;
+	for(i = left+1;i<=right;i++)
+		if(strcmp(v[i],v[left])<0)
+			swap(v,++last,i);
+	swap(v,left,last);
+	qsort(v,left,last-1);
+	qsort(v,last+1,right);
+}
+Similarly,the swap routine needs only trivial changes:
+同样,swap函数只需要很小的变动:
+/* swap:interchange v[i] and v[j] */
+void swap(char *v[],int i,int j)
+{
+	char *temp;
+	temp = v[i];
+	v[i] = v[j];
+	v[j] = temp;
+}
+Since any individual element of v(alias lineptr) is a character pointer,temp must be also,so one can be copied to the other.
+由于v的任一元素(别名为lineptr)是字符指针,temp也是字符指针,因而其中一个指针指向的字符可以被复制到另一个指针指向的位置.
+
+Exercise 5-7.Rewrite readlines to store lines in an array supplied by main,rather than calling alloc to maintain storage.How much faster is the program?
+
+
+5.7 Multi-dimensional Arrays
+    C provides rectangular multi-dimensional arrays,although in practice they are much less used than arrays of pointers.In this section,we will show some of their properties.
+    C语言提供矩阵多维数组,尽管在实际中它们并不像指针数组使用那么广泛,我们将展示多维数组的一些特性.
+    Consider the problem of date conversion,from day of the month to day of the year and vice versa.For example,March 1 is the 60th day of a non-leap year,and the 61st day of a leap year.
+    考虑这个问题,把某月某日这种日期表示形式转换成某年中低几天的表示形式及相反的问题.例如,3月1日是非闰年的第六十天,是闰年的第六十一天.
+Let us define two functions to do the conversions:day_fo_year converts the month and day into the day of the year,and month_day converts the day of the year into the month and day.
+让我们定两个函数来执行转换:day_of_year将某月某日的日期表示形式转换为某年中第几天的表示形式,函数month_day转换年天为某月某日.
+Since this latter function computes two values,the month and day arguments will be pointers:
+因为后一个函数要返回两个值,月和日作为参数使用指针的形式:
+    month_day(1988,60,&m,&d)
+sets m to 2 and d to 29(February 29th).
+把m的值设为2而把d的值谁为29(2月29日).
+    These functions both need the same information,a table of the number of days in each month("thirty days hath September...").Since the number of days per month differs for leap years and non-leap years,
+    这些函数都是需要相同的信息,一个表示月的天数的表格(如"9月有30天,,,").因为对闰年和非闰年有不同的天数,
+it's easier to separate them into two rows of a two-dimensional array than to keep track of what happens to February during computation.
+所以将它们放到一个拥有2行的二维数组中比在计算过程中判断2月有多少天使用期来比较容易.
+The array and the functions for performing the transformations are as follows:
+该数组以及执行的函数如下:
+    static char daytab[2][13] = {
+    {0,31,28,31,30,31,30,31,31,30,31,30,31},
+    {0,31,29,31,30,31,30,31,31,30,31,30,31}
+    };
+	/* day_of_year: set day of year from month & day */
+	int day_of_year(int year,int month,int day)
+	{
+		int i,leap;
+		leap = year%4==0 && year%100!=0 || year%400==0;
+		for(i=1;i<month;i++)
+			day+=daytab[leap][i];
+		return day;
+	}
+	
+	/* month_day: set month,day form day of year	*/
+	void month_day(int year,int yearday,int *pmonth,int *pday)
+	{
+		int i,int leap;
+		leap = year%4==0 && year%100!=0 || year%400==0;
+		for(i=1;yearday>daytab[leap][i];i++)
+			yearday-=daytab[leap][i];
+		*pmonth = i;
+		*pday = yearday;		
+	}
+Recall that the arithmetic value of a logical expression,such as the one for leap,is either zero(false) or one(true),so it can be used as a subscript of the array daytab.
+回忆下逻辑表达式的算术运算值是0(逻辑假)或者是1(逻辑真),本例中,与leap对应的逻辑表达式不是0就是1,所以leap可以被用来作为数组daytab的下标.
+    The array daytab has to be external to both day_of_year and month_day,so they can both use it.We made it char to illustrate a legitimate use of char for storing small non-character integers.
+    数组daytab在函数day_of_year和month_day的外部声明,以使这两个函数都可以使用它.之所以将daytab的元素说明为字符类型,是为了说明在字符类型变量中存放较小的非字符整数也是合法的.
+    daytab is the first two-dimensional array we have dealt with.In C,a two-dimensional array is really a one-dimensional array,each of whose elements is an array.Hence subscripts are written as
+    daytab是到目前为止我们遇到的第一个二维数组.在C中,一个二维数组是一个特殊的一维数组,其每一个元素是一维数组.因此数组下标应该如下
+        daytab[i][j] /* [row][col] */
+rather than
+而不能写成
+        daytab[i,j] /* wrong */
+Other than this notational distinction,a two-dimensional array can be treated in much the same way as in other languages.Elements are stored by rows,so the rightmost subscript,or column,
+除了符号上的差别,C语言的二维数组的使用像其他语言中一样.数组元素都是按行存储,所以最右边的下标,或叫做列,
+varies fastest as elements are accessed in storage order.
+当按存储顺序访问时变化最快的列元素.
+    An array is initialized by a list of initializers in braces;each row of a two-dimensional array is initialized by a corresponding sub-list.
+    数组通过花括号内的初值列表来初始化;二维数组的每一行由相应的子列表初始化.
+We started the array daytab with a column of zero so that month numbers can run from the natural 1 to 12 instead of 0 to 11.Since space is not at a preminum here,this is clearer than adjusting the indices.
+我们开始在数组daytab的第一列元素置为0,是为了月份能够按照自然的1~12而非0~11.由于在这里空间不是主要的问题,这样处理比在程序中调整下标更为清晰.
+    If a two-dimensional array is to be passed to a function,the parameter declaration in the function must include the number of columns;the number of rows is irrelevant,since what is passed is,as before,
+    如果要将一个二维数组作为变量传递给函数,那么参数的声明在函数中必须包含列数;行数是可以忽略的,如之前所述,
+a pointer to an array of rows,where each row is an array of 13 ints.In this particular case,it is a pointer to objects that are arrays of 13 ints.
+函数调用时传递给它的是一个指向由行变量构成的指针,其中每个行向量是具有13个整数的元素的数组.在本例中,传递给函数的是一个指向具有13个整数元素的行向量组成的一维数组的指针.
+Thus if the array daytab is to be passed to a function f,the declaration of f would be
+因此如果daytab作为变量传递给函数f,函数f的声明如下:
+        f(int daytab[2][13]){...}
+It could also be 
+也可以写成
+        f(int daytab[][13]){...}
+since the number of rows is irrelevant,or it could be 
+由于行数是可以忽略的,因为还能写成
+        f(int (*daytab)[13]){...}
+which says that the parameter is a pointer to an array of 13 integers.The parentheses are necessary since brackets [] have higher precedence than *,Without parentheses,the declaration
+这样说明函数是一个指向具有13个整数元素的一维数组的指针.因为方括号[]的优先级高于*的优先级.所以必须使用圆括号.否则,声明
+        int *daytab[13]
+is an array of 13 pointers to integers.More generally,only the first dimension(subscript) of an array is free;all the others have to be specified.
+是一个具有13个指向整数类型对象的指针元素的一维数据.一般而言,只有第一维可以不指定大小外,其余各维都必须明确指定大小.
+    Section 5.12 has a furhter discussion of complicated declaration.
+    在5.12节有一个更复杂的声明讨论.
+
+Exercise 5-8. There is no error checking in day_of_year or month_day.Remedy this defect.
+
+
+5.8 Initialization of Pointer Arrays
+    Consider the problem of writing a function month_name(n),which returns a pointer to a characer string containing the name of the n-th month.This is an ideal application for an internal static array.
+    讨论实现函数month_name(n),这个函数返回一个指向第n个月的名字的字符串指针.这里使用内部静态数组作为数据结构比较理想.
+month_name contins a private array of character strings,and returns a pointer to the proper one when called.This section shows how that array of names is initialized.
+month_name函数包含一个私有的字符串数组,并且当它被调用时返回一个指针指向正确的字符串位置的指针.本节说明如何初始化该数组.
+    The syntax is similar to previous initializations:  
+    指针数组的初始化语法类似于之前的初始化:      
+/* month_name: return name of n-th month */
+char *month_name(int n)
+{
+	static char *name[]={
+		"Illegal month","January","February","March",
+		"April","May","June",
+		"July","August","September",
+		"October","November","December"
+	};
+	return (n<1||n>12)?name[0]:name[n];
+}
+The declaration of name,which is an array of character pointers,is the same as lineptr in the sorting example.
+其中name的声明与之前排序例子中lineptr的声明相同.是一个元素为指针类型的一维数组.
+The initializer is a list of character string;each is asssigned to the corresponding position in the array.
+name数组的初始化通过一个字符串列表实现;列表中的每个字符串赋值给数组中相应的元素.
+The characters of the i-th string are placed somewhere,and a pointer to them is stored in name[i].
+编译程序在内存中的某个地方为第i个字符串分配空间,并且将指向该存储空间的指针放到name[i]中.
+Since the size of the array name is not specified,the compiler counts the initializers and fills in the correct number.
+由于上述声明没有指定数组的大小,因而编译程序将对初始化部分中的字符串进行统计并将之作为该数组的大小填写到有关的符号表中.
+
+
+5.9 Pointers vs. Multi-dimensional Arrays
+    Newcomers to C are sometimes confused about the difference between a two-dimensional array and an array of pointers,such as name in the example above.Given the definitions
+    C语言的初学者有时可能会混淆二维数组与指针数组之间的区别,例如上面例子中的name,下面给出定义
+        int a[10][20];
+        int *b[10];
+then a[3][4] and b[3][4] are both syntactically legal references to a single int.But a is a true two-dimenisional array;200 int-sized locations have been set aside,
+那么a[3][4]与b[3][4]的语法上都是对一个整数的合法引用.但a是一个真正的二维数组;它分配了200个整数大小的存储空间,
+and the conventional rectangular subscript calculation 20*row+col is used to find the element a[row][col].For b,however,the definition only allocates 10 pointers and does not initialize them;
+并且用常规的矩阵下标计算公式20*row+col来计算元素a[row][col]的位置.对于b而言,该定义仅仅分配10个指针并且没有初始化它们;
+initialization must be done explicitly,either statically or with code.Assuming that each element of b does point to a twenty-element array,then there will be 200 ints set aside,plus ten cells for the pointers.
+初始化必须显示执行,不管是静态方式还是通过代码的方式.假定b的每个元素指向一个具有20个元素的向量,那么编译器就要为其分配200个整数,加上10个指针的存储空间.
+The important advantage of the pointer array is that the rows of the array may be different lengths.That is,each element of b need not point to a twenty-element vector;some may point to two elements,
+指针数组的重要优势点在于数组每一行可以有不同的长度,即并不是b的每个元素都有指向一个具有20个元素的向量;有些元素可以指向具有两个元素的向量.
+some to fifty,and some to none at all.
+有些可以指向具有50个元素的向量,有些根本就不指向任何有量.
+    Although we have phrased this discussion in terms of integers,by far most frequent use array of pointers is to store character strings of diverse lengths,
+    尽管上面就是整数来讨论这个问题,但到目前为止,指针数组最频繁的用处是存放具有不同长度的字符串,
+as in the function month_name.Compare the declaration and picture for an array of pointers:
+就像在函数month_name中一样.下面是指针数组的说明和图形化描述:
+        char *name[] = {"Illegal month","Jan","Feb","Mar"};
+    
+with thoes for a two-dimensional array:
+而下面是二维数组的说明和图形化描述:
+        char aname[][15] = {"Illegal month","Jan","Feb","Mar"};
+    
+
+Exercise 5-9. Rewrite the routines day_of_year and mont_day with pointers instead of indexing.
+
+
+
+5.10 Command-line Arguments
+    In environments that support C,there is a way to pass command-line arguments or parameters to a program when it begins executing,When main is called,it is called with two arguments.
+    在支持C语言的环境中,可以在程序开始执行时,将命令行变量或参数传递给程序.调用主函数时,它可以带两个变量.
+The first (conventionally called argc,for argument count) is the number of command-line arguments the program was invoked with;
+第一个参数(通常叫做argc,用于参数统计)的值为执行命令行中参数的数目:
+the second(argv,for argument vector) is a pointer to a array of character strings that contin the arguments,one per string.
+第二个参数(通常叫做argv,用于参数向量)是一个指向字符数组的指针,其中每个字符串对应一个参数.
+We customarily use multiple levels of pointers to mainpulate these character strings.
+我们通常用多级指针处理这些字符串.
+    The simplest illustration is the program echo,which echoes its command=line arguments on a single line,separated by blanks.That is,the command 
+    最简单的例子是回应程序echo,它将命令行回送到屏幕上的一行中,通过空格隔开.即,命令:
+        echao hello,world.
+prints the output
+打印输出
+        hello,world.
+By convention,argv[0] is the name by which the program was invoked,so argc is at last 1.If argc is 1,there are no command-line arguments after the program name.In the example above,argc is 3,
+按照约定,argv[0]的值为调用相应程序的命令名,所以argc的值至少为1.如果argc的值是1,没有命令行变量在程序后.在上面的例子中,argc是3个,
+and argv[0],argv[1],and argv[2] are "echo","hello","world" respectively.The first optional argument is argv[1] and the last is argv[argc-1];additionally,the standard requires that argv[argc] be a null pointer.
+argv[0],argv[1],和argv[2]分别是"echo","hello","world".第一个可选的参数是argv[1]而最后一个可选参数为argv[argc-1];此外,标准要求argv[argc]的值在实现时必须为一个空指针.
+    
+    The first version of echo treats argv as an array of character pointers:
+    第一个版本的echo将arv看作一个字符串指针数组.
+#include <stdio.h>
+
+/* echo command-line arguments;1st version; */
+int main(int argc,char *argv[])
+{
+	int i;
+	for(i=1;i<argc;i++)
+		printf("%s%s",argv[i],(i+argc-1) ? " ":"");
+	printf("\n");
+	return 0;
+}
+
+Since argv is a pointer to an array of pointers,we can manipulate the pointer rather than index the array.This next variation is based on incrementing argv,which is a pointer to pointer to char,while argc is counted down:
+因为argv是一个指向数组的指针,我们能够操作指针而不是数组下标来处理命令行变量.下一个版本是在对argv进行加一运算同时对argc进行减一运算的基础上实现,其中argv是一个指向字符指针的指针:
+#include <stdio.h>
+
+/* echo command-line arguments;2st version; */
+int main(int argc,char *argv[])
+{
+	while(--argc>0)
+		printf("%s%s",*++argv,(argc>1) ? " ":"");
+	printf("\n");
+	return 0;
+}
+Since argv is a pointer to the beginning of the array of argument strings,incrementing it by 1(++argv) makes it point at the original argv[1] instead of argv[0].
+因为argv是一个指向由变量组成的字符串数组的开始位置的指针,所以加一运算(++argv)将使它指向原来的argv[1]而不是argv[0].
+Each successive increment moves it along to the next arguments;*argv is then the pointer to that argument.At the same time,argc is decremented;when it becomes zero,there are no arguments left to print.
+每执行一次加一运算就使它移动它下一个变量;*argv是指向那个变量的指针.同时,argc执行减一运算;当它变为0时,就完成所有变量的打印.
+    Alternatively,we could write the printf statement as
+    也可以将printf语句写成如下
+        printf((argc>1)?"%s":"%s",*++argv);
+This shows that the format argument of printf can be an expression too.
+该语句表明printf的格式化变量也可以是表达式.
+    As a second example,let us make some enhancements to the pattern-finding program from Section 4.1.If you recall,we wired the search pattern deep into the program,
+    第二个例子,我们强化4.1节中的模式查找程序的功能.如果我们回忆一下,我们将待搜索的模式嵌入到程序中,
+an obviously unsatisfactory arrangement.Following the lead of the UNIX program grep,let us change the program so the pattern to be matched is specified by the first argument on the command line.
+这种解决方法显然不能令人满意.下面效仿UNIX程序grep的实现方式,我们来改写模式查找程序,使得待匹配的模式串由命令行的第一个变量指定.
+#include <stdio.h>
+#include <string.h>
+
+#define MAXLINE 1000
+
+int getline(char *line,int max);
+
+/* find: print lines that match pattern from 1st arg */
+main(int argc,char *argv[])
+{
+	char line[MAXLINE];
+	int found = 0;
+	if(argc!=2)
+		printf("usage:find pattern\n");
+	else
+	{
+		while(getline(line,MAXLINE)>0)
+		{
+			if(strstr(line,argv[1])!=NULL){
+				printf("%s",line);
+				found++;
+			}
+		}
+	}	
+}
+The standard library fuction strstr(s,t) returns a pointer to the first occurrence of the string t in the string s,or NULL if there is none.It is declared in <string.h>
+标准库函数strstr(s,t)返回第一个出现的字符串t在字符串s中.或NULL如果没有找到.其定义在<string.h>中.
+    The model can now be elaborated to illustrate further pointer constructions.Suppose we want to allow two optional argument.One says "print all lines except those that match the patter;" 
+    为了进一步解释指针结构.下面精心设计模式查找程序.假定我们想要两个可选的参数.一个说"打印除匹配模式串之外的所有文本行"
+the second says "precede each printed line by its line number."
+第二个说"每个被打印文本行前面都有相应的行号."
+    A common convention for C programs on UNIX systems is that an argument that begins with a minus sign introduces an optional flag or parameter.If we choose -x(for "except") to singal the inversion,
+    对UNIX系统上的C程序而言,一个公共的约定是以负号为开头的标志或参数.如果我们选择-x(表示"except")来表示打印与模式串不匹配的文本行,
+and -n("number") to request line numbering,then the command
+而-n("number")表示打印行号,那么命令
+    find -x -n pattern
+will print each line that doesn't match the pattern,prceded by its line number.
+将打印每一行文本,这个文本与模式不匹配,其中每个处理之前都有相应的行号.
+    Optional arguments should be permitted in any order,and the rest of the program shoud be independent of the number of arguments that were present.Furthermore,
+    可选参数能以任意顺序排列,同时程序其余部分应独立于命令行中所出现的参数的数目.此外,
+it is convenient for users if option arguments can be combined,as in
+如果参数能够组合,那么对用户来说说就非常方便,如
+    find -nx pattern
+Here is the program:
+改写后的查找程序如下:
+#include <stdio.h>
+#include <string.h>
+
+#define MAXLINE 1000
+
+int getline(char *line,int max);
+
+/* find: print lines that match pattern from 1st arg */
+main(int argc,char *argv[])
+{
+	char line[MAXLINE];
+	long lineno = 0;
+	int c,except = 0,number = 0,found = 0;
+	while(--argc>0 && (*++argv)[0] == '-')
+	{
+		while(c == *++argv[0])
+		{
+			switch(c)
+			{
+				case 'x':
+					except=1;
+					break;
+				case 'n':
+					number =1;
+					break;
+				default:
+					printf("find:illegal option%c\n",c);
+					argc=0;
+					found=-1;
+					break;
+			}
+		}
+	}
+	if(argc!=1)
+		printf("usage:find -x -n pattern\n");
+	else
+		while(getline(line,MAXLINE)>0)
+		{
+			lineno++;
+			if((strstr(line,*argv)!=NULL)!=except)
+			{
+				if(number)
+					printf("%ld:",lineno);
+				printf("%s",line);
+				found++;
+			}
+		}
+		return found;
+}
+    argc is decremented and argv is incremented before each optional argument.At the end of the loop,if there are no errors,
+    在处理每个可选参数之前,argc减一操作而argv进行加一操作.在循环结束时,如果没有错误,
+argc tells how many arguments remain upprocessed and argv points to the first of these,
+argc的值是还没有处理的参数,而argv指向这些未处理变量中的第一个变量.
+Thus argc should be 1 and *argv should point at the pattern,Notice that *++argv is a pointer to an argument string,so (*++argv)[0] is its first character.(An alternate valid from would be **++argv.)
+因此argc的值应该是1,而*argv应指向模式串,注意*++argv是一个指向变量的字符串,所以(*++argv)[0]是它的第一个字符.(另一个有效的形式是**++argv.)
+Because [] binds tighter than * and ++,the parentheses are necessary;without them the expression would be taken as *++(argv[0]).In fact,
+因为[]与运算分量的结合性比*和++的高,所以上述表达式中是必须使用圆括号的;否则编译程序会把该表达式当作*++(argv[0]).事实上,
+that is what we used in the inner loop,where the task is to walk along a specific argument string.In the inner loop,the expression *++argv[0] increments the pointer argv[0]!
+内循环中使用了表达式*++argv[0],其目的是遍历一个特定的参数串.在内部循环中,表达式*++argv[0]对指针argv[0]加一运算.
+    It is rare that one uses pointer expressions more complicated than these;in such cases,breaking them into two or three steps will be more intuitive.
+    很少见到有人使用比这些更复杂的指针表达式了;在那种情况下,将它们分为2步或3步会更直观.    
+
+Exercise 5-10. Write the program expr,which evaluates a reverse Polish expression from the command line,where each operator or operand is a separate argument.For example,
+    expr 2 3 4 + *
+evaluates 2 * (3 + 4).
+
+Exercise 5-11. Modify the programs entab and detab (written as exercises in Chapter 1) to accept a list of tab stops as arguments.Use the dfault tab settings if there are no arguments.
+
+Exercise 5-12. Extend entab and detab to accept the shorthand 
+    entab -m +n
+to mean tab stops every n columns,starting at column m.Choose convenient (for the user) default behavior.
+
+Exercise 5-13. Write the program tail,which prints the last n line of its input.By default,n is 10,let us say,but it can be changed by an optional argurment,so that
+    tail -n
+Prints the last n lines.The program should behave rationally no matter how unreasonable the input or the value of n.Write the program so it makes the best use of available storage;lines should be stored as in the sorting program of Section 5.6,not in a two-dimensional array of fixed size.
+
+
+5.11 Pointers to Functions
+    In C,a function itself is not a variable,but it is possible to define pointers to functions,which can be assigned,placed in arrays,passed to functions,returned by functions,and so on.
+    在C语言中,函数本身不是变量,但是可以定义指向函数的指针,这种指针能够被赋值,存放在数组中,传递给函数,作为函数的返回值,等等.
+We will illustrate this by modify the sorting procedure writtern earlier in this Chapter so that if the optional argument -n is given.it will sort the input lines numerically instead of lexicographically.
+我们将通过修改本章前面的排序函数,使其能够在给出参数-n的情况下,程序将按按数值大小而不是字典顺序的方式对输入进行排序,来说明指向函数的指针的用法.
+    A sort often consists of three parts - a comparsion that determines the ordering of any pair of objects,an exchange that reverses their order,
+    一个排序程序通常包含3个部分--比较操作用来排序任意一组对象,交换操作用来颠倒对象次序,
+and a sorting algorithm that make comparsions and exchnages until the object are in order.The sorting algorithm is independent of the comparsion and exchnage operations,
+和排序算法使比较和交换直到对象有序.由于排序算法独立于比较和交换操作,
+so by passing different comparsion and exchnage functions to it,we can arrange to sort by different criteria.This is the approach taken in our new sort.
+因此通过在排序算法中传递不同的比较和交换函数,我们就能够以不同标准来进行排序.这就是新版本排序函数采用的方法.
+    Lexicographic comparsion of two lines is done by strcmp,as before;
+    字典序比较两个输入行通过strcmp操作,在此之前;
+we will also need a routine numcmp that comparse two line on the basis of numeric value and return the same kind of condition indication as strcmp dose.
+我们需要一个在数值的基础上比较两个输入行并且返回和strcmp同样的比较结果的一个函数numcmp.
+This functions are declared ahead of main and a pointer to the appropriate one is passed to qsort.We have skimped on error processing for arguments,so as to concentrate to the main issues.
+函数都定义在main的开头,并且一个指向其中之一的指针传递给qsort函数.我们将不花费心思在给参数的错误处理上,而将重点集中在主要问题上.
+
+#include <stdio.h>
+#include <string.h>
+
+#define MAXLINES 5000 /* max #lines to be sorted */
+
+char *lineptr[MAXLINES]; /* pointers to text lines */
+
+int readlines(char *lineptr[],int nlines);
+void writelines(char *linesptr[],int nlines);
+
+void qsort(void *lineptr[],int left,int right,int (*comp)(void *,void *));
+
+int numcmp(char *,char *);
+
+/* sort inut lines */
+main(int argc,char *argv[])
+{
+	int nlines; /* number of input lines read */
+	int numeric = 0;  /* 1 if numeric sort */
+	
+	if(argc>1 && strcmp(argv[1],"-n")==0)
+		numeric = 1;
+	if((nlines = readlines(lineptr,MAXLINES))>=0){
+		qsort((void**)lineptr,0,nlines-1,
+		(int(*)(void*,void*))(numeric?numcmp:strcmp));
+		writelines(lineptr,nlines);
+		return 0;
+	}
+	else{
+		printf("input too big to sort\n");
+		return 1;
+	}
+}
+In the call to qsort,strcmp and numcmp are addresses of functions.Since they are known to be functions,the & operator is not necessary,in the same way that it is not needed before an array name.
+在调用qsort中,strcmp和numcmp都是函数的地址.因为它们都是函数,所以&操作不是必须的,同样在数组之前也不需要&.
+    We have wirtten qsort so it can process any data type,not just character strings.As indicated by the function prototype,qsort expects an array of pointers,two integers,and a function with two pointer arugments.
+    改写后的qsort函数能够对任何数据类型,不仅仅是字符串排序.通过函数原型所示,qsort期望一个指针数组,两个整数,和一个拥有两个指针参数的函数组成.
+The generic pointer type void * is used for the pointer arguments.Any pointer can be cast to void * and back again without loss of information,so we can call qsort by casting arguments to void *.
+通用指针类型void*用做指针变量.任何指针类型能够转换为void*并且转回原来类型时不会丢失信息,所以我们能够通过将变量转换void*类型来调用qsort函数.
+The elaborate cast of the function argument casts the arguments of the comparison function.These will generally have no effect on actual representation,but assure the compiler that all is well.
+因而在转换时将把比较函数的变量转换为void*类型.这种转换一般不会影响实际表述,但要确保编译时都是正确的.
+/* qsort:sort v[left]...v[right] into increasing sorter */
+void qsort(void *v[],int left,int right,int (*cmp)(void *,void *))
+{
+	int i,last;
+	void swap(void *v[],int,int);
+	
+	if(left>=right) /* do nothing if array contains */
+		return;   /* fewer than two elements */
+	
+	swap(v,left,(left+right)/2);
+	last = left;
+	for(i=left+i;i<=right;i++)
+	{
+		if((*cmp)(v[i],v[left])<0)
+		{
+			swap(v,++last,i);
+		}
+		swap(v,left,last);
+		qsort(v,left,last-1,comp);
+		qsort(v,last+1,right,comp);
+	}	
+}
+The declarations should be studied with some care.The foruth parameter of qsort is 
+其定义需要仔细研究.qsort函数的第四个参数为
+    int (*comp)(void *,void *)
+which says that comp is a pointer to a function that has two void * arguments and returns an int.
+它表示comp是一个指向函数的指针,这个函数拥有两个void *的参数并且返回类型为int.
+    The use of comp in the line
+    comp的使用如下
+       if((*cmp)(v[i], v[left] <0)
+is consistent with the declaration :comp is a pointer to a function,*comp is the function,and
+与声明是一致的:comp是一个指向函数的指针,*comp表示这个函数,并且
+        (*comp)(v[i],v[left])
+is the call to it.The parentheses are needed so the components are correctly associated;without them,
+是调用这个函数.圆括号是必须的这样才能使各成分正确关联;去掉圆括号,
+        int *comp(void *,void *) /* wrong */
+says that comp is a function returning a pointer to an int,which is very different.
+表示comp是一个返回一个指向整数的指针的函数,这显然有很大的区别.
+    We have already shown strcmp,which compares two strings.Here is numcmp,which compares two strings on a leading numeric value,computed by calling atof:
+    我们之前展示了strcmp,用来比较两个字符串.下面是numcmp,它通过调用atof计算数字符串对应的数值,以此来比较两个字符串.
+#include <stdlib.h>
+
+/* numcmp:compare s1 and s2 numerically */
+int numcmp(char *s1,char *s2)
+{
+	double v1,v2;
+	v1 = atof(s1);
+	v2 = atof(s2);
+	if(v1<v2)
+		return -1;
+	else if(v1>v2)
+		return 1;
+	else
+		return 0;
+}
+    The swap function,which exchanges two pointers,is identical to what we presented earlier in the chapter,except that the declarations are changed to void *.
+    swap函数,其用来交换两个指针,是完全一致的在我们在本章之前提供的,除了改变为void*的声明.
+void swap(void *v[],int i,int j)
+{
+	void *temp;
+	temp = v[i];
+	v[i] = v[j];
+	v[j] = temp;
+}
+    A variety of other options can be added to the sorting program;some make challenging exercises.
+    许多其他的可选项可以增加到排序程序中;其中一些具有挑战的在习题中.
+
+Exercise 5-14. Modify the sort program to handle a -r flag,which indicates sorting in reverse(decreasing) order.Be sure that -r works with -n.
+
+Exercise 5-15.Add the option -f to fold upper and lower case together,so that case distinctions are not made during sorting;for example,a and A compare equal.
+
+Exercise 5-16.Add the -d("directory order") option,which makes comparisons only on letters,numbers and blanks.Make sure it works in conjunction with -f.
+
+Exercise 5-17.Add a field-handling capability,so sorting may be done on fields within lines,each field sorted according to an independent set of options.(The index for this book was sorted with -df for the index category and -n for the page numbers)
+

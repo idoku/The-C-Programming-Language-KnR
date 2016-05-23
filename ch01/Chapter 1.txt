@@ -1,0 +1,1188 @@
+﻿CHAPTER 1:A Tutorial Introduction
+    Let us begin with a quick introduction to C.Our aim is to show the essential elements of the language in real programs,but without getting bogged down in details,rules,and exceptions.At this point,
+    让我们先对C来一个快速的介绍.我们的目标是在实际程序中展示C语言的本质要素,而不不要陷入具体细节,规则以及例外情况中去.因此,
+we are not trying to be complete or even precise(save that the examples are meant to be correct).We want to get you as quickly as possible to the point where you can write useful programs,
+我们不试图完整或精确的对C语言进行介绍(但是例子都是正确的).我们希望你能尽可能的快速掌握怎么编写有用程序,
+and to do that we have to concentrate on the basics:variables and  constants,arithmetic,control flow,functions,and the rudiments of input and output.
+因此,我们专注于基本概念:变量,常量,算术,控制流程,函数和基本输入,输出.
+We are intentionally leaving out of this chapter features of C that are important for writing bigger programs.These include pointers,structures,most of C's rich set of operators,several control-flow statements,
+我们有意避免在这一章写较大的程序所需要C的重要特性.包括指针,结构,大多数C的复杂集合运算,几个控制流语句,
+and the standard library.
+以及标准库.
+    This approach has its drawbacks.Most notable is that the complete story on any particular language feature is not found here,and the tutorial,by being brief,may also be misleading.
+    这样做法也有缺陷.其中最大的不足之处是这里找不到对任何特定语言特性的完整描述,并且,由于太简明,也可能产生误解.
+And because the examples do not use the full power of C,they are not as concise and elegant as they might be.We have tried to minimize these effects,but be warned.
+而且,因为示例没有用到C的所有特性,所以这些例子可能就不够简明优美,我们努力降低这些影响,
+Another drawback is that later chapters will necessarily repeat some of this chapter.We hope that the repetition will help you more than it annoys.
+还一个缺陷是,后面的章节将重复一些本章的内容.我们希望这种重复带来的帮助胜过烦恼.
+    In any case,experienced programmers should be able to extrapolate from the material in this chapter to their own programming needs.Beginners should supplement it by writing small,
+    无论如何,经验丰富的程序员应能从本章提供的材料中推断他们在自己程序设计中需要的东西.初学者则应该编写小的,
+similar programs of their own.Both groups can use it as a framework on which to hang the more detailed descriptions that begin in Chapter 2.
+类似的程序来充实它.这两种人都应该能把本章当作了解后续章节详细内容的框架.
+
+
+1.1 Getting Started
+    The only way to learn a new programming language is by writing programs in it.The first program to write is the same for all langugaes:
+    学习一门新的程序语言的唯一途径是用它来写程序.对于所有语言,编写的第一个程序都是相同的
+    Print the wrods
+        Hello,world.
+This is the big hurdle;to leap over it you have to be able to create the program text somewhere,compile it successfully,load it,run it,and find out where your ouput went.With these mechanical details mastered,
+在初学程序时这是一个很大的障碍;为了越过这个障碍,首先必须建立程序文本,然后成功编译它,装入它,运行它,然后找到你输出的地方.只要这些操作的细节掌握了,
+everything else is comparatively easy.
+其他事就相对比较容易了.
+    In C,the program to print "hello,world" is
+    在C语言中,用如下程序打印"hello,world"
+#include <stdio.h>
+main()
+{
+    printf("hello,world\n");
+}
+    Just how to run this program depends on the sytem you are using.As a specific example,on the UNIX operating system you must create the program in a file whose name end in ".c",such as hello.c,
+    至于如何运行这个程序取决于你所使用的系统.作为一个特殊的例子,在UNIX操作系统上,你必须以一个".c"作为扩展的文件中创建这个程序.例如hello.c,
+then compile it with the command
+然后再用如下命令编译它
+        cc hello.c
+If you haven't botched anything,such as omitting a character or misspelling something,the compilation will proceed silently,and make an executable file called a.out.If you run a.out by typing the command
+如果程序中没有出现任何错误,例如漏掉或错拼了字符,那么编译程序将往下执行,然后产生一个可执行的文件a.out.如果你输入如下命令
+        a.out
+it will print
+它将打印
+        hello,world
+On other systems,the rules will be different;check with a local expert.
+在其他系统上,这个规则可能不同;请找身边的专家核实.
+----------------------------------------------
+#include <stdio.h>      /* include information about standard library */
+int main()              /* define a function named main that receives no argument value  */
+{                       /* statement of main are enclosed in braces */
+    printf("hello,world\n");    /* main calls library function printf to print this sequence of characters;\n represents that newline character */
+    return 0;
+}
+---------------------------------------------
+    Now for some explanations about the program itself.A C program,whatever its size,consists of functions and variables.A function contains statements that specify the computing operations to be done,
+    现在就程序本身做一些解释.每一个C程序,无论大小如何,都由函数和变量组成.函数中包含若干用于指定计算机操作如何做的语句,
+and variables store values used during the computation.C functions are like the subroutines and functions of Fortran or the procedures and fuctions of Pascal.Our example is a function named main.
+而变量用于在计算过程中存储有关值.C函数像Fortan程序中的子程序或者Pascal语言中的过程和函数.我们的例子中函数的名称是main.
+Normally you are at liberty to give functions whatever names you like,but "main" is special - your program begins executing at the beginning of main.This means that every program must have a main somewhere.
+一般而言,你可以给函数任意命名,但是"main"是特殊的函数名称 - 你的程序在main函数开始执行.这意味着每一个程序都必须含有一个main函数.
+    main will usually call other functions to help perform its job,some that you wrote,and others form libraries that are provided for you.The first line of the program,
+    main函数通常调用其他函数来帮助完成它的工作,调用的函数一些是你自己编写的,另一些来自系统提供的函数类库.上面程序的第一行,
+        #include <stdio.h>
+tells the compiler to include information about the standard input/output library;this line appears at the beginning of many C source files.The standard library is described in Chapter 7 and Appendix B.
+用于告诉编译器去包含标准输入输出库的有关信息;许多C文件开始的地方都包含这一行.这个标准库的详细描述在第七章和附录B介绍.
+    One method of communicating data between functions is for the calling function to provide a list of values,called arguments,to the function it calls.
+    在函数之间数据通信的一种方式是让调用函数向被调用函数提供一个串值,叫做参数.
+The parentheses after the function name surround the argument list.In this example,main is defined to be a function that expects no arugments,which is indicated by the empty list().
+函数名后面的一对圆括号用于把参数列表括起来.在本例子中,所定义的main函数不要求任何参数,所以用空()来表示.
+    The statements of a function are enclosed in braces{},The function main contains only one statement,
+    函数的语句用闭合的花括号{}括起来,本例中主函数只包含一个语句,
+        printf("hello,world\n");
+A function is called by naming it,followed by a parenthesized list of arguments,so this calls the function printf with the argument "hello,world\n".printf is a library function that prints output,
+调用函数时,先给出这个函数的名字,再紧跟着用一对圆括号括住参数列表.上面这个语句就是通过参数"hello,world\n"来调用printf函数.printf函数是一个用于打印输出的库函数,
+in this case the string of characters between the quotes.
+在本例中,它用于打印引号括住的字符串.
+    A sequence of characters in double quotes,like "hello,world\n",is called a character string or string constant.For the moment our only use of character strings will be as arguments for printf and other functions.
+    一个字符序列被两个引号括住,像"hello,world\n"一样.被叫做字符串或字符串常量.现在我们仅仅使用字符串当做printf函数和其他函数的参数.
+    The sequence \n in the string is C notation for the newline character,which when printed advances the ouput to the left margin on the next line.If you leave out the \n(a worthwhile experiment),
+    在C语言中,字符序列\n表示新行字符,在打印时它用于指示从下一行的左边开始打印.如果在字符串中你遗漏了\n(一个值得做的实验),
+you will find that there is no line advance after the output is printed.You must use \n to include a new character in the printf argument;if you try something like
+你将会发现没有换行在打印输出以后.在printf函数的参数中必须用\n引入换行符;如果你尝试这样做
+        printf("hello,world
+        ");
+the C compiler will produce an error message.
+C编译器将给出警告信息.
+    printf never supplies a newline automatically,so several calls may be used to build up an output line in stages.Our first program could just as well have been written
+    printf函数永远不会自动换行,所以可以分阶段多次调用这个函数来打印输出行.我们的第一个程序可以这样来写
+#include <stdio.h>
+ 
+int main()
+{
+printf("hello,");
+printf("world");
+printf("\n");
+return 0;
+}
+to produce identical output.
+产生与之前同样的输出.
+    Notice that \n represents only a single character.An escape sequence like \n provides a general and extensible mechanism for representing hard-to-type or invisible characters.
+    请注意,\n只表示一个单个字符.诸如像\n等换码序列为表示不能打印或不可见的字符提供了一种通用的扩展机制.
+Among the others that C provides are \t for tab,\b for backspace,\" for the double quote,and \\ for the backslash itself.There is a complete list in Section 2.3.
+除此之外,C语言提供了的换码序列还有:\t表示制表符,\b表示退格,\"表示双引号,\\表示反斜扛本身.2.3节将给出换码序列的完整列表..
+ 
+Exercise 1-1. Run the "hello,world" program on your system.Experiment with leaving out parts of the program,to see what error messages you get.
+
+Exercise 1-2. Experiment to find out what happens when printf's argument string contains \c,where c is some character not listed above.
+
+1.2 Variables and Arithmetic Expressions
+    The next program uses the formula ℃=(5/9)(°F-32) to print the following table of Fahrenheit temperatures and their centigrade or Celsius equivalents:
+    下一个程序将使用公式 ℃=(5/9)(°F-32) 打印下面表中的华氏温度和他们的摄氏温度的对照表.
+0    -17
+20    -6
+40    4
+60    15
+80    26
+100    37
+120    48
+140    60
+160    71
+180    82
+200    93
+220    104
+240    115
+260    126
+280    137
+300    148
+The Program itself still consists of the definition of a single function named main.It is longer than the one that printed "hello,world",but not complicated.It introduces several new ideas,
+程序本身仍然只由一个简单定义的main函数组成.它要比打印"hello,world"的程序要长,但并不复杂.它引入了一些新的概念,
+including comments,declarations,variables,arithmetic expressions,loops,and formatted output.
+包括注释,声明,变量,算术表达式,循环和格式化输出.
+#include<stdio.h>
+/* print Fahrenheit-Celsius table 
+    for fahr = 0,20,...,300  */
+int main()
+{
+int fahr,celsius;
+int lower,upper,step;
+lower=0;      /* lower limit of temperature table */
+upper=300;     /*  upper limit */
+step=20;   /*  step size */
+fahr = lower;
+while(fahr<=upper){
+    celsius = 5 * (fahr-32)/9;
+    printf("%d\t%d\n",fahr,celsius);
+    fahr = fahr + step;
+}
+return 0;
+}
+The two lines
+     /* print Fahrenheit-Celsius table
+         for fahr = 0,20,...,300  */
+are a comment,which in this case explains briefly what the program does.Any characters between /* and */ are ignored by the compiler;they may be used freely to make a program easier to understand.
+叫做注释,用于简单解释程序是做什么的.任何在/*和*/之间的字符都将在编译时被编译器忽略;它们可以在程序中自由的使用,目的是使程序更加容易理解.
+Comments may appear anywhere a blank or tab or newline can.
+注释能出现任何空格,制表符或者换行符可以出现的地方.
+    In C,all variables must be declared before they are used,usually at the beginning of the function before any executeable statements.A declaration announces the properties of variables;
+    在C语言中,所有变量必须先声明,后使用,申明通常放在函数开始处的可执行语句之前.一个声明用于说明变量的属性;
+it consists of a type name and a list of variables,such as
+它包括类型名称和一组变量,就像
+        int fahr,celsius;
+        int lower,upper,step;
+The type int means that the variables listed are integers,by contrast with float,which means floating point,i.e.,numbers that may have a fractional part.
+类型int意味着所列变量都是整数类型,同理,使用float就意味着是浮点类型,浮点数可能含有小数部分.
+The range of both int and float depends on the machine you are using;16-bit ints,which lie between -32768 and +32767,are common,as are 32-bit ints. A float number is typically a 32-bit quantity,
+int与float的取值范围取决于你使用的机器;16位int型,取值范围在-32768到+32767之间,也有用32位int型的.float类型通常是32位的,
+with at least six significant digits and magnitude generally between about 10-38 and 10+38.
+它至少有6位有效数字,一般取值在10-38 ~10+38之间.
+    C provides several other basic data types besides int and float,including:
+    除了int和float之外,C语言还提供数个其他基本数据类型,包括:
+        char        character --- a single byte
+        short       short integer
+        long        long integer
+        double    double-precisin floating point
+The sizes of these objects are also machine-dependent.There are also arrays,structures and unions of these basic types,pointers to them,and functions that return them,all of which we will meet in due course.
+这些数据对象的大小也都取决于机器.另外,还有由基本类型组成的数组,结构体和联合类型,和指向这些类型的指针类型,和返回这些类型的函数,这些我们将在后面章节再介绍.
+    Computation in the temperature conversion program begins with the assignment statements.
+    计算温度转换程序,是以赋值语句开始.
+        lower = 0;
+        upper = 300;
+        step = 20;
+        fahr = lower;
+which set the variables to their initial values.Individual statements are terminated by semicolons.
+用于设置变量初始值.各个语句都以分号结束.
+    Each line of the table is computed the same way,so we use a loop that repeats once per output line;this is the purpose of the while loop
+    温度程序表格的每一行都是按同样的方式计算,所以我们用一个循环重复产生各行的输出,没行重复一次;这就是while循环语句的作用
+        while(fahr <= upper){
+            ...
+        }
+The while loop operates as follows:The condition in parentheses is tested.If it is true(fahr is less than or equal to upper),the body of the loop(the three statements enclosed in braces) is executed.
+while循环操作执行如下:首先测试圆括号中的条件.如果条件为真(fahr小于或等于uppoer),则执行循环体(在花括号里的3条语句).
+Then the condition is re-tested,and if true,the body is executed again.When the test becomes false(fahr exceeds upper) the loop ends,and execution continues at the statement that follows the loop.
+然后再重复测试该条件.如果为真,继续执行循环体.当测试变为假(fahr超过upper)时,循环终止.然后继续执行紧跟着循环语句之后的下一个语句.
+There are no further statements in this program,so it terminates.
+本程序中没有更进一步的语句,所以程序终止.
+    The body of a while can be one or more statements enclosed in braces,as in the temperature converter,or a single statement without braces,as in
+    while的循环体可以是在花括号内的一句个或多个语句,如之前的温度转换,或者单个语句不需要花括号,像
+        while(i<j)
+            i = 2 * i;
+In either case,we will always indent the statements controlled by the while by one tab stop (which we have shown as four spaces) so you can see at a glance which statements are inside the loop.
+在两个案例中,我们总是把由while控制的语句向里缩进一个制表位(在书中用4个空格表示),所以你一瞬间就能看出哪些语句在循环体内.
+The indentation emphasizes the logical structure of the program.Although C compilers do not care about how a program looks,
+这种缩进方式强化了程序的逻辑结构.尽管C编译器并不关心程序的具体形式,
+proper indentation and spacing are critical in making programs easy for people to read.We recommend writing only one statement per line,and using blanks around operators to clarify grouping.
+但适当的缩进和空格可以决定人们在阅读程序时更加容易.我们建议每行只写一条语句,并且使用空格在操作符的两边使其看起来更清楚.
+The position of braces is less important,although people hold passionate beliefs.We have chosen one of several popular styles.Pick a style that suits you,then use it consistently.
+花括号的位置不是那么重要,尽管人们都有他喜爱的风格.我们从几种流行风格中选取一种编写程序.你可以挑选一种风格适合你的,然后一直坚持使用它..
+    Most of the work gets done in the body of the loop.The Celsius temperature is computed and assigned to the variable celsius by the statement
+    大部分工作在循环体中完成.摄氏温度通过循环体的语句计算和后并赋值给变量celsius.
+        celsius = 5 * (fahr - 32) / 9
+The reason for multiplying by 5 and then dividing by 9 instead of just multiplying by 5/9 is that in C,as in many other languages,integer division truncates:any fractional part is discarded.
+在该语句中,之所以把表达式先乘以5然后再除以9来代替直接用5/9,是因为在C语言中和其他许多语言中,整数除要进行截取:结果中任何小数部分会被丢弃.
+Since 5 and 9 are integers,5/9 would be truncated to zero and so all the Celsius temperatures would be reported as zero.
+因为5和9都是整数,5/9相除之后截取的结果将是0,所以这样所求得的摄氏温度将全是0.
+    This example also shows a bit more of how printf works.printf is a general-purpose output formatting function,which we will describe in detail in Chapter 7.Its first argument is a string of characters to be printed,
+    这个例子也对printf函数的功能做了更多的介绍.printf函数式一个通用的输出格式化的函数,我们将在第7章描述更多相关细节.它的第一参数是要被打印的字符串,
+with each % indicating where one of the other(second,third,...) arguments is to be substituted,and in what form it is to be printed.For instance,%d specifies an integer argument,so the statement
+其中每个%指示用其他参数(第2,第3等)之一对其进行替换,以及打印参数的格式.例如,%d指定一个整数变量,语句如下
+        printf("%d\t%d\n",fahr,celsius);
+causes the values of the two integers fahr and celsius to be printed,with a tab(\t) between them.
+用于打印两个整数fahr和celsius,两者中间有个制表符(\t).
+    Each % construction in the first argument of printf is paired with the corresponding second argument,third argument,etc.;they must match up properly by number and type,or you'll get wrong answers.
+    在printf函数中,第一个参数的每一个%分别对应第二个参数,第三个参数,如此类推;它们在数目上和类型上都必须匹配,否则将得到一个错误.
+    By the way,printf is not part of the C language;there is no input or output defined in C itself.printf is just a useful function from the standard library of functions that are normally accessible to C programs.
+    顺便指出,printf函数并不是C语言的一部分;C语言本身并没有定义输入和输出功能.printf函数仅仅是标准库中一个有用的函数,标准库函数一般在C程序中都可以使用.
+The behavior of printf is defined in the ANSI standard,however,so its properties should be the same with any compiler and library that conforms to the standard.
+ANSI标准中定义了printf函数的行为,从而它的性质在使用每一个符合标准的编译程序与库中都是相同的.
+    In order to concentrate on C itself,we won't talk much about input and output until Chapter 7.In particular,we will defer formatted input until then.If you have to input numbers,
+    为了集中讨论C语言本身,第七章之前我们将不过多讨论输入和输出细节.特别是我们把格式化输入延后到第七章.如果你想了解输入数字,
+read the discussion of the function scanf in Section 7.4.scanf is like printf,except that it reads input instead of writing output.
+请先阅读第7.4小节关于scanf函数的的讨论.scanf函数类似于printf函数,只不过它是用于读输入数据而不是写输出数据.
+    There are a couple of problems with the temperature conversion program.The simpler one is that the output isn't very pretty because the numbers are not right-justified.That's easy to fix;
+    在温度转换程序中存在两个问题.比较简单的一个是,因为输入不是右对齐的,所以输出不是特别好看.这个问题容易解决;
+if we augment each %d in the printf statement with a width,the numbers printed will be right-justified in their fields.For instance,we might say
+如果我们在printf函数的第一个参数中的%后带上宽度.则打印的数字会在打印区域右对齐.例如,我们这样用
+        printf("%3d %6d\n",fahr,celsius);
+to print the first number of each line in a field three digits wide,and the second in a field six dighits wide,like this:
+将打印第一个数组每一行占3个数字宽.第二个数字每一行占6个数字宽,如下所示:
+0        -17
+20        -6
+40         4
+60       15
+80       26
+100     37
+...
+    The more serious problem is that because we have used integer arithmetic,the Celsius temperatures are not very accurate;for instance,0°F is actually about -17.8°C,not -17.To get more accurate answers,
+    更严重的问题是,因为我们用的是整数计算,求得的摄氏温度不是非常精确;例如,0°F对应的摄氏温度实际上是-17.8°C而不是-17°C.为了得到更精确的答案,
+we should use floating-point arithmetic instead of integer.This requires some changes in the program.Here is a second version:
+我们应使用浮点运算来代替整数运算.这要求对程序做适当的修改,下面就是程序的第二版版本:  
+#include<stdio.h>
+/* print Fahrenheit-Celsius table
+   for fahr = 0,20,...,300  */
+int main()
+{
+float fahr,celsius;
+int lower,upper,step;
+lower=0;      /* lower limit of temperature table */
+upper=300;     /*  upper limit */
+step=20;   /*  step size */
+fahr = lower;
+while(fahr<=upper){
+    celsius = (5.0/9.0) * (fahr-32.0);
+    printf("%3.0f %6.1f\n",fahr,celsius);
+    fahr = fahr + step;
+}
+}
+    This is much the same as before,except that fahr and celsius are declared to be float,and the formula for conversion is written in a more natural way.
+    这个版本与之前版本基本相同,除了把fahr和celsius定义为浮点类型,并且用于转换的公式也更加自然.
+We were unable to use 5/9 in the previous version because integer division would truncate it to zero.
+在之前的版本中,我们之所以无法使用5/9,是因为整型除法将它们相除截取的结果为0.
+A decimal point in a constant indicates that it is floating point,however,so 5.0/9.0 is not truncated becasue it is the ratio of two floating-point values.
+一个小数点常量表明是一个浮点数,所以5.0/9.0不会被截取,因为它是两个浮点数值相除.
+    If an arithmetic operator has integer operands,an integer operation is performed.If an arithmetic operator has one floating-point operand and one integer operand,
+    如果运算操作的分量都是整数类型,那么就执行整数运算.如果运算操作中有一个是浮点分量,和一个整数类型,
+however,the integer will be converted to floating point before the operation is done.If we had written fahr-32,the 32 would be automatically converted to floating point.
+那么,整数类型在运算开始之前将转型为浮点型.如果我们将表达式写为 fahr-32 ,那么32在运算过程中将自动转型为浮点类型再参与计算.
+Nevertheless,writing floating-point constants with explicit decimal points even when they have integral values emphasizes their floating-point nature for human readers.
+不过,在写浮点数常量最好显式的写上小数点,即使浮点常量取的是整数值,这样可以强调它们的浮点性质,便于人们阅读.
+    The detailed rules for when integers are converted to floating point are in Chapter 2.For now,notice that the assignment
+    第二章将详细介绍把整型数转换成浮点的规则.现在,请注意下面这个赋值语句
+        fahr = lower;
+and the test
+与条件测试
+        while(fahr<=upper)
+also work in the natural way --- the int is converted to float before the operation is done.
+也都是以自然方式执行 --- 在运算之前先把int型转换为float型.
+    The printf conversion specification %3.0f,says that a floating-point number(here fahr) is to be printed at least three characters wide,with no decimal point and no fraction digits.
+    printf函数中的转换说明%3.0f表明要打印的该浮点数(这里指fahr变量)至少占3个字符宽,不带小数点和小数部分.
+%6.1f describes another number(celsius) that is to be printed at least six characters wide,with 1 digit after the decimal point.The output looks like this:
+%6.1f表示另一个要打印的数(celsius)至少占6个字符宽,包括小数点和小数点后1位数字.输出像这个样子:
+        0 -17.8
+        20 -6.7
+        40 4.4
+    ...
+Width and precision may be omitted from a specification:%6f says that the number is to be at least six characters wide;%.2f specifies two characters after the decimal point,but the width is not constrained;
+在格式说明中宽度和精度可以省略:%6f是指要打印的数至少占6个字符宽;%.2f说明要打印的数在小数点后有两位小数,但是整体宽度不受限制;
+and %f merely says to print the number as floating point.
+而%f仅仅是指要打印的数字是浮点型.
+        %d                print as decimal integer
+        %6d              print as decimal integer,at last 6 characters wide
+        %f                 printf as floating point
+        %6f               print as floating point,at least 6 characters wide
+        %.2f              print as floating point,2 characters after decimal point
+        %6.2f            print as floating point,at least 6 wide and 2 after decimal point
+Among others,printf also recognizes %o for octal,%x for hexadecimal,%c for character,%s for character string,and %% for % itself.
+此外,printf函数还可以识别如下格式,%o表示八进制,%x表示十六进制,%c表示字符,%s表示字符串,而%%表示%自己.
+ 
+Exercise 1-3. Modify the temperature conversion program to print a heading above the table.
+
+Exercise 1-4. Write a program to print the corresponding Celsius to Fahrenheit table.
+
+1.3 The For Statement
+    There are plenty of different ways to write a program for a particular task.Let's try a variation on the temperature converter.
+    对于一个特定的任务,可以有多种方法来编写程序.让我们讲述温度转换程序的一个变种.        
+# include<stdio.h>
+ 
+/* print Fahrenheit - Celsius table */
+int main()
+{
+    int fahr;
+    for(fahr = 0;fahr <= 300; fahr = fahr + 20)
+        printf("%3d %6.1f\n",fahr,(5.0/9.0)*(fahr-32));
+    return 0;
+}
+This produces the same answers,but it certainly looks different.One major change is the elimination of most of the variables;only fahr remains,and we have made it an int.
+这个版本与之前版本的结果相同,但是看起来有些不同.一个最主要的变化是去除了大部分变量;只有fahr保留下来,我们定义其类型为int型.
+The lower and upper limits and the step size appear only as constants in the for statemtnt,itself a new construction,
+本来用变量表示的下限,上限与步长都在新引入的for语句中作为常量出现,
+and the expression that computes the Celsius temperature now appears as the third argument of printf instead of as a separate assignment statement.
+用于求取摄氏温度的表达式现在已经变成了printf的第三个参数,而不是一个单独的赋值.
+    This last change is an instance of a general rule ---  in any context where it is permissible to use the value of a variable of some type.you can use a more complicated expression of that type.
+    这最后一个变化说明了一个通用规则 --- 在所有可以使用某个类型变量值的地方,都可以使用该类型的更复杂的表达式.
+Since the third argument of printf must be a floating-point value to match the %6.1f,any floating-point expression can occur there.
+由于printf函数的第三个参数必须是一个与%6.1f匹配的浮点值,则可以在这里使用任何浮点表达式
+    The for statement is a loop,a generalization of the while.If you compare it to the earlier while,its operation should be clear.Within the parentheses,there are three parts,separated by semicolons.The first part,
+    for语句是一种循环语句,是while语句的推广.如果将其与前面介绍的while语句比较,它的操作将更清楚一些.在圆括号内,包括三个部分,它们之间用分号隔开.第一部分,
+the initialization
+        fahr = 0
+is done once,before the loop proper is entered.The second part is the test or condition that controls the loop:
+是初始化部分,仅在进入循环之前执行一次.第二个部分是用于控制循环的条件测试部分:
+        fahr <= 300
+This condition is evaluated;if it is true,the body of the loop(here a single printf) is executed.Then the increment step
+这个条件是求值;如果为真,则执行循环体(本例循环体只包含一个printf函数调用语句).然后再执行第三部分,
+        fahr = fahr + 20
+is executed,and the condition re-evaluated.The loop terminates if the condition has become false.As with the while,the body of the loop can be a single statement,or a group of statements encolsed in braces.
+加步长,并再次对条件求值.如果条件判断值为假,则循环结束.像while语句一样,循环体可以使单个语句,或者在花括弧内括住的一组语句.
+The initialization,condition,and increment can be any expression.
+初始化部分,条件部分,和加步长部分可以使任何表达式.
+    The choice between while and for is arbitrary,based on which seems clearer.The for is usually appropriate for loops in which the initialization and increment are single statements and logically related,
+    至于在while与for这两个循环体语句使用哪一个,这是随意的,主要根据是看哪种更清晰的描述问题.for语句通常适合这样的循环:那些初始化和步长增加都是单语句并且是逻辑相关的循环,
+since it is more compact than while and it keeps the loop control statements together in one place.
+因为for循环循环控制语句放在一起.相对于while循环语句更加紧凑.
+ 
+Exercise 1-5. Modify the temperature conversion program to print the table in reverse order,that is,from 300 degrees to 0.
+
+
+1.4 Symbolic Constants
+    A final observation before we leave temperature conversion forever.It's bad practice to bury "magic numbers" like 300 and 20 in a program;
+    在结束对温度转换程序讨论之前,在来看看这些符号常量.把像300和20等"魔数"写在程序中是一个坏习惯;
+they convey little information to someone who might have to read the program latter,and they are hard to change in systematic way.One way to deal with magic numbers is to give them meaningufl names.
+它们传达毫无作用的信息给后来那些阅读程序的人,而且使程序修改变得困难.一种处理魔数的方式是给它们赋予有意义的名字.
+A  #define line defines a symbolic name or symbolic constant to be a particular string of characters:
+#define指令就是用于把符号名字或者符号常量定义为一个特定的字符串:
+        #define  name   replacement text
+Thereafter,any occurrence of name (not in quotes and not part of another name) will be replaced by the corresponding replacement text.
+此后,所有出现在程序中由#define定义的名字(该名字既不在引号中,也不是其他名字的一部分)将会用对对应的替换文本替换.
+The name has the same form as a variable name:a sequence of letters and digits that begins with a letter.The replacement text can be any sequence of characters;it is not limited to numbers.
+这个名字与普通变量名字具有相同的形式:以字母开头的字母或数字序列.替代文本可以使任何字符序列;而不仅限于数字.
+#include <stdio.h>
+ 
+#define    LOWER    0        /* lower limit of table */
+#define UPPER    300        /* upper limit */
+#define STEP     20        /* step size */
+ 
+/* print Fahrenheit - Celsius table */
+int main()
+{
+    int fahr;
+    for(fahr = LOWER;fahr<=UPPER;fahr = fahr + STEP)
+        printf("%3d %6.1f\n",fahr,(5.0/9.0)*(fahr-32));
+    return 0;
+}
+The quantities LOWER,UPPER and STEP are smbolic constants,not variables,so they do not appear in declarations.
+LOWER,UPPER,STEP都是符号常量,不是变量,所以它们不用出现在申明中.
+Symbolic constant names are conventionally written in upper case so they can readily distinguished from lower case variable names.Notice that there is no semicolon at the end of a #define line.
+符号常量命名通常作大写字母拼写,所以它们能够轻易的区分于小写的变量.注意,#define结尾没有分号.
+
+
+1.5 Character Input and Output
+    We are now going to consider a family of related programs for processing character data.You will find that many programs are just expanded versions of the prototypes that we discuss here.
+    我们现在讨论一些与字符数据有关的程序.你将找到许多程序仅仅是我们在这里讨论的程序原型的扩充版本.
+    The model of input and output supported by the standard library is very simple.Text input or output,regardless of where it originates or where it goes to,is dealt with as streams of characters.
+    由标准库提供的输入和输出模型非常简单.文本输入或输出,都是把它当做字符流来处理.不关心它从哪里输入,输出到何处,
+A text stream is a sequence of characters divided into lines;each line consists of zero or more characters followed by a newline character.
+文本流就是一行行字符组成的字符序列;每一行包含0个或者多个字符,并紧跟着一个换行符.
+It is the responsibility of the library to make each input or output stream conform to this model;the C programmer using the library need not worry about how lines are represented outside the program.
+这是标准库的职责使每一行输入输出流遵照这个模型;使用标准库的C程序员不需要担心各行在程序外怎么表示.
+    The standard library provides several functions for reading or writing one character at a time,of which getchar and putchar are the simplest.
+    标准库提供几个函数用于控制一次读取和写入一个字符,其中最简单的就是getchar和putchar这两个函数.
+Each time it is called,getchar reads the next input character from a text stream and returns that as its value.that is,after
+getchar函数在每次被调用时,从文本流中读取下一个输入字符并且将作为结果值返回.即,执行
+        c = getchar()
+the variable c contains the next character of input.The characters normally come from the keyboard;input from files is discussed in Chapter 7.
+变量c包含了输入流中的下一个字符.这种字符通常来自键盘输入;从文件输入将在第七章讨论.
+    The function putchar prints a character each time it is called:
+    putchar函数每次它被调用时打印一个字符:
+        putchar(c)
+prints the contents of the integer variable c as a character,usually on the screen.Calls to putchar and printf may be interleaved;appear in the order in which the calls are made.
+用于将整数变量c的内容当做字符打印,它通常显示在品屏幕上.putchar和printf函数通常可以交替使用;输出的次序即是调用次序.
+ 
+1.5.1 File Copying
+    Given getchar and putchar,you can write a surprising amount of useful code without knowing anything more about input and output.
+    借助getchar和putchar函数,你可以在不掌握任何与输入和输出知识的情况下,编写出许多有用的代码.
+The simplest example is a program that copies its input to its output one character at a time:
+最简单的示例是一次一个字符地把输入复制到输出:
+        read a character
+        while (character is not end-of-file indicator)
+            output the character just read
+            read a character
+Converting this into C gives
+转换成C程序就是
+#include <stdio.h>
+ 
+/* copy input to output; 1st version */
+int main()
+{
+    int c;
+    c = getchar();
+    while(c!=EOF){
+        putchar(c);
+        c=getchar();
+    }
+    return 0;
+}
+The realational operator != means "not equal to."
+其中关系运算符!=的意思是"不等于".
+    What appears to be a character on the keyboard or screen is of course,like everything else,stored internally just as a bit pattern.The type char is specifically meant for stroing such character data,
+    像其他许多东西一样,一个字符无论在键盘上或屏幕上以什么形式出现,在机器内部都是以位模式存储的.char类型是一个专用于存储字符数据的类型,
+but any integer type can be used.We used int for a subtle but important reason.
+当然任何整数类型也可以用于存储字符.由于某种微妙却很重要的原因,我们在这里使用了int类型.
+    The problem is distinguishing the end of the input from valid data.The solution is that getchar returns a distinctive value when there is no more input,a value that cannot be confused with any real character.
+    需要解决的问题是从如果将文件中的有效的数据与结束标记区分开来.解决方案是,getchar函数当没有输入的时候返回一个特殊值,这个值不能与任何实际字符混淆.
+This value is called EOF,for "end of file".We must declare c to be a type big enough to hold any value that getcahr returns.
+这个值叫做EOF,也就是"end of file".必须把c定义成一个大到足以存放getchar函数可能返回的各种值类型.
+We can't use char since c must be big enough to hold EOF in addition to any possible char.Therefore we use int.
+我们之所以不能把c声明为char类型,是因为c必须大到足够存储任何可能的字符外还有能存储文件结束符EOF.因此我们把c声明为int定义.
+    EOF is an integer defined in <stdio.h>,but the specific numeric value doesn't matter as long as it is not the same as any char value.By using the symbolic constant,
+    EOF是一个定义在<stdio.h>库中的整数,但是其具体的数字值不重要,只要知道它与char类型所有值都不同就行了.通过使用符号常量,
+we are assured that nothing in the program depends on the specific numeric value.
+我们可以保证EOF在程序中不依赖任何特殊的数字值.
+    The program for copying would be written more concisely by experienced C programmers.In C,any assignment,such as
+    有经验的程序员对于复制程序将会写得更加简明.在C语言中,任何赋值语句,诸如
+        c = getchar()
+is an expression and has a value,whcih is the value of the left hand side after the assignment.This means that an assignment can appear as part of a larger expression.
+是一个表达式,因为就有一个值,即赋值后位于=左边变量的值.这就意味着赋值语句可以作为更大的一个表达式的一部分.
+If the assignment of a character to c is put inside the test part of a while loop,the copy program can be written this way:
+可以将字符赋给c的赋值操作放在while循环语句的测试部分中.拷贝程序可以写成这个形式:
+#include <stdio.h>
+ 
+/* copy input to output; 1st version */
+int main()
+{
+    int c;
+    while((c=getchar())!=EOF){
+        putchar(c);
+    }
+    return 0;
+}
+The while gets a character,assigns it to c,and then tests whether the character was the end-of-file signal.If it was not,the body of the while is executed,printing the character.
+while读取一个字符,赋值给c变量,然后测试部分判断字符是否结束符标记.如果不是,循环体执行循环,打印这个字符.
+The while then repeats.When the end of the input is finally reached,the while terminates and so does main.
+重复执行while语句.当最后达到输入结束位置时,while语句将被终止,从而整个main程序结束.
+    This version centralizes the input --- there is now only one reference to getchar --- and shrinks the program.The resulting program is more compact,and,once the idiom is mastered,easier to read.
+    这个版本的特点是集中处理输入 --- 这里现在只有一次引用getchar函数 --- 使整个程序更加收缩.所得到的程序更紧凑,并且这个风格更优秀,更容易阅读.
+You'll see this style often.(It's possible to ge carried away and create impenetrable code,however,a tendency that we will try to curb).
+你将经常见到这种风格,(然而,如果再进一步,它可能带来创建难以理解的代码,我们将尽量制止这种趋势).
+    The parentheses around the assignment within the condition are necessary.The precedence of != is higher than that of =,
+    用于括住赋值表达式的圆括号是必须的.不等运算符!=的优先权高于赋值运算符=的优先级,
+which means that in the absenece of parentheses the relational test ! = whould be done before the assignment =.So the statement
+这意味着缺少圆括号的话关系测试!=将在赋值=之前执行.所以语句
+        c = getchar() != EOF
+is equivalent to
+等价于
+        c = (getchar() != EOF)
+This has the undesired effect of setting c to 0 or 1,depending on whether or not the call of getchar encountered end of file.(More on this in Chapter 2).
+这个语句的作用是把c设置为0或者1.取决于getchar函数在调用执行时所读取的数据是否为文件结束符,这并不是我们要的结果.(更多细节将在第二章讨论)
+ 
+Exercise 1-6. Verify that the expression getchar() != EOF is 0 or 1.
+
+Exercise 1-7. Write a program to print the value of EOF.
+
+1.5.2 Character Counting
+    The next program counts characters;it is similar to the copy program.
+    下一个程序统计字符;它类似于上个拷贝程序.
+#include <stdio.h>
+ 
+/* count characters in input; 1st version */
+int main()
+{
+    long nc;
+ 
+    nc = 0;
+    while(getchar()!=EOF)
+        ++nc;
+    printf("%ld\n",nc);
+    return 0;
+}
+<这里有个要注意的地方,键盘上没有代表EOF的值,必须在输入时使用Ctrl+Z来结束.>
+<必须在控制台运行程序,如果直接运行,结束后直接退出将无法观察到输出.>
+The Statement
+        ++nc;
+presents a new operator,++,which means increment by one.You could instead write nc = nc + 1 but ++nc is more concise and often more efficient.There is a corresponding operator -- to decrement by 1.
+引入了一个新的操作符,++,其功能为每次加1.也可以使用 nc = nc + 1 来替代,但是++nc更加简明并且更加有效率.同样有相应的操作符--来每次减1.
+The operators ++ and -- can be either prefix operators (++nc) or postfix (nc++);these two forms have different values in expressions,as will be shown in Chapter 2,but ++nc and nc++ both increment nc.
+操作符++和--能够使用作为前缀运算(++nc),也可以用作后缀运算(nc++);这里两种形式在表达式中有不同的值,同样将在第二章展示,但是++nc和nc++都使nc的值加1.
+For the moment we will stick to the prefix form.
+对于现在来说,我们使用前缀形式.
+    The character counting program accumulates its count,in a long variable instead of an int.long integers are at least 32 bits.Although on some machines,int and long are the same size,
+    这个字符统计程序计算使用long型数据代替int型数据来存放计算值.long整型(长整型)至少占用32位存储单元.尽管在某些机器上int和long都是同样的大小,
+on others an int is 16 bits,with a maximum value of 32767,and it would take relatively little input to overflow an int counter.
+但是在其他机器上int型是占16位存储空间,最大的值是32767,所以将相对较小的输入就会导致计数变量溢出.
+The conversion specification %ld tells printf that the corresponding argument is a long integer.
+转换说明%ld用来告诉printf函数,对应的参数是一个long整数类型..
+    It may be possible to cope with even bigger numbers by using a double(double precision float).We will also use a for statement instead of a while,to illustrate another way to write the loop.
+    如果使用double类型(双精度浮点数),那么可能统计更多字符.下面我们将使用for语句代替while语句,来说明另一种循环的编写方法.
+#include <stdio.h>
+ 
+/* count characters in input; 2st version */
+int main()
+{
+    double nc;
+    for(nc = 0;getchar() != EOF;++nc)
+    ;
+    printf("%.0f\n",nc);
+    return -1;
+}
+printf uses %f for both float and double;%.0f suppresses printing of the decimal point and the fraction part,which is zero.
+printf函数使用%f可以用于flot类型和double类型;%.0f用于控制打印的小数点和分数部分,因此小数部分为0.
+    The body of this for loop is empty,because all of the work is done in the test and increment parts.But the grammatical rules of C require that a for statement hava a body. 
+    这个for循环体部分是空的,因为所有的工作都在测试部分和步长增加部分完成了.但是C的语法规则要求for循环语句必须有一个循环体.
+The isolated semicolom,called a null statement,is there to satisfy that requirement.We put it on a separate line to make it visble.
+因此用单独的分号代替,单独的分号叫做空语句,正好满足for语句的要求.我们把它单独列一行是为了显目一些.
+    Before we leave the character counting program,observe that if the input contains no characters,the while or for test fails on the very first call to getchar,and the program producces zero,the right answer.
+    在我们结束这章统计程序之前,请观察如下情况:如果输入不包含字符,while或者for循环测试部分在一开始就为假,getchar函数一次也不会调用,并且程序执行结果0,这个结果也正确.
+This is important.One of the nice things about while and for is that they test at the top of the loop,before proceeding with the body.If there is nothing to do,nothing is done,
+这一点非常重要.while和for循环的一个优点就是它们在执行循环体之前就进行条件测试.如果没有事情要做,就不做,
+even if that means never going through the loop body.Programs should act intelligently when given zero-length input.
+即使意味着它不执行循环体.程序在出现0长度的输入时应该要智能一些.
+The while and for statements help ensure that programs do reasonable things with boundary conditions.
+while语和for语句帮助确保程序在边界条件时做合理的事情.
+ 
+1.5.3 Line Counting
+    The next program counts input lines.As we mentioned above,the standard library ensures that an input text stream appears as a sequence of lines,each terminated by a newline.
+    下一个程序用于统计输入行数.正如我们之前提到的,标准库确保一个输入文本流以行序列的形式出现,每一个行以换行符结束.
+Hence,counting llines is just counting newlines:
+因此,统计行数仅需统计换行符个数:        
+#include <stdio.h>
+ 
+/* count lines in input */
+int main()
+{
+    int c,nl;
+    nl=0;
+    while((c=getchar())!=EOF)
+        if(c=='\n')
+            ++nl;
+    printf("%d\n",nl);
+    return -1;
+}
+    The body of the while now consists of an if,which in turn controls the increment ++nl.The if statement tests the parenthesized condition,and if the conditoin is true,
+    while循环体部分现在包含了一个if语句,它用来控制增值++nl.if语句先测试括号中的条件,如果条件为true,
+executes the statement(or group of statements in braces) that follows.We have again indented to show what is controlled by what.
+则执行接下来的语句(或者在花括号中的语句组).我们再次用缩进的方式指示哪个语句被哪个语句控制.
+    The double equals sign == is the C notation for "is equal to"(like Pasca's single = or Fortran's .EQ.).This symbol is used to distinguish the equality test from the single = that C uses for assignment.
+    双等于号==表示C语言中的"等于"运算符(类似于Pascal中的单等于号=,或者Fortran中的.EQ.).由于C语言中已经用单个相等符号=来表示赋值运算,所以用双等于号表示相等测试.
+A word of caution:newcomers to C occasionally write = when they mean ==.As we will see in Chapter 2,the result is usually a legal expression,so you will get no warning.
+注意:C语言的初学者经常书写=来表示==的意思.正如第二章所述,即使这样误写了,结果通常是合法的表达式,你将得不到警告信息.
+    A character written between single quotes represents an integer value equal to the numerical value of the character in the machine's character set.
+    写在单引号中的一个字符表示一个整数值,这个值表示字符在机器字符集中的数值.
+This is called a chacter constant,although it is just another way to write a small integer.So,for example,'A' is a character constant;in the ASCII character set its value is 65,
+这个被称作字符常量,尽管它仅仅是另一种方式来写一个较小的整数.所以,如例子,'A'就是一个字符常量,在ASCII字符集中它的值是65,
+the internal representation of the character A.Of course 'A' is to be preferred over 65:its meaning is obvious,and it is independent of a particular character set.
+即字符A内部表示的值为65.当然'A'要比65要好,它的意思更加明显,并独立于特定的字符集.
+    The escape sequences used in string constants are also legal in character constants,so, '\n' stands for the value of the newline character,which is 10 in ASCII.
+    字符串常量中使用的转义序列也是合法的字符常量.所以,'\n'表示换行符的值,它的值在ASCII码中为10.
+You should note carefully that '\n' is a single character,and in expressions is just an integer;on the other hand,"\n" is a string constant that happens to contain only one character.
+你必须小心注意,'\n'是一个单个字符,在表达式中它不过是一个整数;另一方面,"\n"是一个只包含一个字符的字符串常量.
+The topic of strings versus characters is discussed further in Chapter 2.
+有关字符串变量的主题我们将在第二章讨论.
+ 
+Exercise 1-8. Write a program to count blanks,tabs,and newlines.
+ 
+Exercise 1-9. Write a program to copy its input to its output,replacing each string of one or more blanks by a single blank.
+ 
+Exercise 1-10. Write a program to copy its input to its output,replacing each tab by \t,each backspace by \b,and each backslash by \\.This makes tabs and backspaces visible in an unambiguous way.
+
+
+1.5.4 Word Counting
+    The fourth in our series of useful programs counts lines,words,and characters,with the loose definition that a word is any sequence of characters that does not contain a blank,tab or newline.
+    我们将要介绍第4个程序用于统计行数,单词数与字符数,这里对单词的定义放得比较宽,它是任何不包含空格,制表符或换行的字符序列.
+This is a bare-bones version of the UNIX Program wc.
+下面这个比较简单的版本是在UNIX系统上实现的完成这一功能的程序wc.
+#include <stdio.h>
+ 
+#define IN 1 /* inside a word */
+#define OUT 0 /* outside a word */
+ 
+/* count lines,words,and characters in input */
+int main()
+{
+    int c,nl,nw,nc,state;
+ 
+    state = OUT;
+    nl = nw = nc = 0;
+    while((c=getchar())!=EOF)
+    {
+        ++nc;
+        if(c=='\n')
+            ++nl;
+        if(c==' ' || c=='\n' || c=='\t')
+            state = OUT;
+        else if(state == OUT){
+            state = IN;
+            ++nw;
+        }       
+     }    
+     printf("%d %d %d\n",nl,nw,nc);
+    return -1;
+}
+    Every time the program encounters the first character of a word,it counts one more word.The variable state records whether the program is currently in a word or not;
+    程序在执行时,每当遇见单词的第一个字符,它就当做统计一个新的单词.变量state用于记录是否程序是否在一个单词中;
+initially it is "not in a word" whcih is assigned the value OUT.We prefer the symbolic constants IN and OUT to the literal values 1 and 0 because they make the program more readable.
+它初始化为"不在单词内",即赋值的值OUT.我们更喜欢使用符号常量IN和OUT而不是字面量值1和0,主要是因为这样可以使程序更可读.
+In a program as tiny as this,it makes little difference,but in larger programs,the increase in clarity is well worth the modest extra effort to write it this way from the beginning.
+在比较小的程序中,它也许看不出什么区别,但是在比较大的程序中,在开始写程序的时候就这样做,所做的额外的工作与所能增加程序的清晰性相比是值得的 ,
+You'll also find that it's easier to make extensive changes in programs where magic numbers appear only as symbolic constants.
+你将同样发现,当魔数仅仅在符号常量中出现,那么对程序大量修改就变显得比较容易.
+The line
+        nl = nw = nc = 0
+sets all three variables to zero.This is not a special case,but a consequece of the fact that an assignment is an expression with a value and assignments associate from right to left.It's as if we hand written
+设置所有的三个变量为0.这并不是特殊的例子,但一个事实结论是,在兼有值和赋值的表达式中,赋值的结合次序是从右到左.所以上面的表达式可以写成
+        nl = (nw = (nc = 0));
+The operator || means OR,so the line
+运算符||表示的是OR(或),所以程序行
+        if(c == ' ' || c == '\n' || c = '\t' )
+says "if c is a blank or c is a newline or c is a tab".(Recall that the escape sequence \t is a visible representation of the tab character).There is a corresponding operator && for AND;
+意思是"如果c是空格或换行或是制表符".(回忆一下,转义序列\t是制表符的可见表示).与之对应的操作符是&&表示AND(和),
+its precedence is just higher than ||.Expressions connected by && or || are evaluated left to right,and it is guaranteed that evaluation will stop as soon as the truth or falsehood is known.If c is a blank,
+它的优先级只比||高一级.通过 && 或 || 连接的表达式,都是从左到右求值,并且保证在求值过程中只要得知真或假,求值就会停止.如果c是空格符,
+there is no need to test whether it is a newline or tab,so these tests are not made.This isn't particularly important here,but is significant in more complicated situations,as we will soon see.
+就没有必要再测试它是换行符或制表符,所以后面两个测试都不会执行.在这里不是特别的重要,但是在更复杂的情况下就很重要,我们将很快见到.
+    The example also shows an else,which specifies an alternative action if the condition part of an if statement is false.The general form is
+    例子还展示了else语句,它指定当if语句中的条件部分如果为假时所要采取的动作.其一般形式为:
+        if(expression)
+            statement1
+        else
+            statement2
+One and only one of the two statements associated with an if-else is performed.If the expression is true,statement1 is executed;if not,statement2 is executed.
+在if-else的两个语句中有且只有一个会被执行.如果表达式为真,语句1被执行;如果为假,语句2被执行.
+Each statement can be a single statement or several in braces.In the word count program,the one after the else is an if that controls two statements in braces.
+每条语句都可以是单条语或者花括号中的多条语句.在单词统计程序中,else语句之后是if语句,这个if语句用于控制花括号中的两个语句.
+ 
+Exercise 1-11. How would you test the word count program?What kinds of input are most likely to uncover bugs if there are any?
+ 
+Exercise 1-12. Write a program that prints its input one word per line.
+
+
+1.6 Arrays
+    Let us write a program to count the number of occurrences of each digit,of white space characters(blank,tab,newline),and of all other charcaters.
+    让我们编写一个用来统计数字,空白符(空格符,制表符,换行符),以及其他所有字符出现次数的程序.
+This is artificial,but it permits us to illustrate several aspects of C in one program.
+这程序有点假,但是有助于我们在一个程序中说明C语言的几个方面加以讨论.
+    There are twelve categories of inuput,so it is convenient to use an array to hold the number of occurrences of each digit,rather than ten individual variable.Here is one version of the program:
+    由于输入的字符可以有12种类别,所以用一个数组来存比使用10个独立变量来存放各个数字出现的次数要方便一些.西面是程序的第一个版本:
+#include <stdio.h>
+ 
+/* count digits, white space, others */
+int main()
+{
+    int c,i,nwhite,nother;
+    int ndigit[10];
+ 
+    nwhite =nother = 0;
+    for(i=0;i<10;++i)
+        ndigit[i] = 0;
+    while((c=getchar())!=EOF)   
+         if(c>='0' && c<='9')
+             ++ndigit[c-'0'];
+          else if(c==' ' || c=='\n' || c=='\t')
+             ++nwhite;
+          else
+             ++nother;           
+    printf("digits=");
+    for(i=0;i<10;++i)
+        printf(" %d",ndigit[i]);
+    printf(",white space =%d,other = %d\n",nwhite,nother);    
+    return -1;
+}
+The output of this program on itself is
+当把程序自身作为输入时
+        dighits = 9 3 0 0 0 0 0 0 0 1,white space = 123,other = 345
+    The declaration
+        int ndigit[10];
+declares ndigit to be an array of 10 integers.Array subscripts always start at zero in C,so the elements are ndigit[0],ndigit[1],...,ndigit[9].This is refelected in the for loops that initialize and print the array.
+声明定义了ndigit变量为一个由10个整数组成的数组.在C语言中数组的下标总是从0开始,所以元素是ndigit[0],ndigit[1],...,ndigit[9].这里分别在初始化中和打印数组的两个for循环中体现.
+    A subscript can be any integer expression,which includes integer variables like i,and integer constants.
+    下标可以是任何整数表达式,包括整数变量像变量i,和整数常量.
+    This particular program relies on the properties of the character representation of the digits.For example,the test
+    这个程序的的执行取决于数字的字符表示的性质.例如,测试.
+        if(c >= '0' && c <= '9') ...
+determines whether the character in c is a digit.If it is,the numeric vlaue of that dight is
+判定c中的字符是否为数字.如果是,那么该数字的数值是
+        c - '0'
+This works only if '0','1',...,'9' have consecutive increasing values.Fortunately,this is true for all character sets.
+这种做法只有在'0','1',...'9'具有连续增加值时才有效.幸运的,所有字符集都是这样做的.
+    By definition,chars are just small integers,so char variables and constants are identical to ints in arithmetic expressons.This is natural and convenient;for example,
+    根据定义,字符都是小整数,所以字符变量和常量等价于算术表达式中的int类型的变量和常量.这样自然而且方便,例如,
+c - '0' is an integer expression with a value between 0 and 9 corresponding to the character '0' to '9' stored in c,and is thus a valid subscript for the array ndigit.
+c - '0' 是一个整数表达式,对应于存储在c中的字符'0'到'9',其值为0到9,因此这些值可以充当数组ndigit的合法下标..
+    The decision as to whether a character is a digit,white space,or something else is made with the sequence
+    程序中决定字符是否数字,空白符或其他字符的判定是如下语句序列完成
+        if(c >= '0' && c <= '9')
+            ++ndigit[c - '0']
+        else if(c == ' ' || c== '\n' || c=='\t')
+            ++nwhite;
+        else
+            ++nother;
+The pattern
+        if(condition1)
+            statement1
+        else if(condition2)
+            statement2
+        ...
+            ...
+        else
+            statementn
+occurs frequently in programs as a way to express a multi-way decision.The conditions are evaluated in order from the top until some condition is satisfied;
+在程序中经常出现用于表达多路判定.这些条件从顶部往下求值,直到满足某个条件.
+at that point the corresponding statement part is executed,and the entire construction is finished.(Any statement can be several statements enclosed in braces.)
+这时对应的语句部分被执行,执行完成后,整个if结构完成.(其中的任何语句能都可以是花括号中的若干个语句.)
+If none of the conditions is satisfied,the statement after the final else is executed if it is present.If the final else and statement are omitted,as in the word count program,no action takes place.
+如果没有一个条件满足,执行最后一个else之后的语句,如果有这个语句.如果没有这个else及对应的语句,那么这个if构造就不执行任何动作,就像之前单词统计程序一样.
+There can be any number of
+可以有多个
+        else if (condition)
+            statement
+groups between the initial if and the final else.
+在初始化if和最后的else语句组之间.
+    As a matter of style,it is advisable to format this construction as we have shown;if each if were indented past the previous else,a long sequence of decisions would march off the right side of the page.
+    就风格而言,建议采用缩进的格式化结构像我们之前展示的一样;如果每个if都比前一个else向里缩进排版,那么对于一个较长的判定序列可能跃出页面的右边界.
+    The switch statement,to be discussed in Chapter 3,
+    第三章将讨论switch语句,
+provides another way to write a multi-way branch that is particularly suitable when the condition is whether some integer or character expression mathces one of a set of constants.
+其提供另一种方式书写多重分支结构,它特别适合表示数个整数或字符表达式是否与某一常量集合中的某一个元素匹配的情况.
+we will present a switch version of this program in Section 3.4
+我们将在3.4节给出switch语句编写的这个程序的另一个版本.
+ 
+Exercise 1-13. Write a program to print a histogram of the lengths of words in its input.It is easy to draw the histogram with the bars horizontal;a vertical orientation is more chanllenging.
+ 
+Exercise 1-14. Write a program to print a histogram of the frequencies of different characters in its input.
+
+1.7 Functions
+    In C,a function is equivalent to a subroutine or function in Fortran,or a procedure or function in Pascal.A function provides a convenient way to encapsulate some computation,
+    在C语言中,函数等价于Fortran语言中的子程序或者函数,或者Pascal语言中的过程或函数.函数为计算的封装提供一种便捷的方法,
+which can then be used without worrying abou its implementation.With properly designed functions,it is possible to ignore how a job is done;knowing what is done is sufficient.
+能够在其他地方使用它们时不必考虑具体的实现.在使用正确设计的函数时,可以不考虑函数是怎么工作的;只要知道它做什么就足够了.
+C makes the use of functions easy,convenient and efficient;you will often see a short function define and called only once,just because it clarifies some piece of code.
+C语言使用了简单,方便和有效的函数;你将经常看到一些定义和调用仅仅一次的短函数,只是因为这样使函数代码段更清晰.
+    So far we have used only functions like printf,getchar,and putchar that have been provided for us;now it's time to write a few of our own,
+    到目前为止,我们使用的函数仅仅像是printf,getchar,和putchar都是库函数提供给我们的;现在是时候写一些我们自己的函数了,
+Since C has no exponentiation operator like the ** of Fortran,let us illustrate the mechanics of function power(m,n) to raise an integer m to a positive integer power n.
+由于C语言没有像Fortran中那样提供如**之类的求幂操运算符,让我们编写求幂函数power(m,n)来说明定义函数的方法,其用于计算整数m的正整数次幂n.
+That is,the value of power(2,5) is 32.This function is not a practical exponentiation routine,since it handles on positive powers of small integers,but it's good enough for illustration.
+即,power(2,5)的值是32.这个函数不是一个实用的求幂程序,因为它处理正整数幂只能是比较小的整数,但是它足够说明函数了.
+(the standard library contains a function pow(x,y) that computes xy).
+(在标准库中包含了一个函数pow(x,y)用于计算x的y次幂).
+    Here is the function power and a main program to exercise it,so you can see the whole structure at once.
+    下面给出power函数并在主函数中调用它,所以你可以一次看到整个结构.
+#include <stdio.h>
+ 
+int power(int m, int n);
+ 
+/* test power function */
+int main()
+{
+    int i;
+    for(i = 0;i < 10;++i )
+    {
+        printf("%d %d %d\n", i, power(2,i),power(-3,i));
+    }
+    return -1;
+}
+ 
+/* power: raise base to n-th power; n >= 0 */
+int power(int base , int n)
+{
+    int i,p;
+    p = 1;
+    for(i = 1;i <= n;++i)
+        p = p * base;
+    return p;
+}
+    A function definition has this form:
+    函数定义的一般形式为:
+        return-type function-name(parameter declarations,if any)
+        {
+                declarations
+                statements
+        }
+Function definitions can appear in any order,and in one source file or several,Although no function can be split between files.
+函数定义可以以任意次序出现在单个源文件中或者多个源文件中,但同一函数不可以分开存放在不同的文件中.
+If the source program appears in several files,you may have to say more to compile and load it than if it all appears in one,but that is an operating system matter,not a language atttribute.
+如果源文件出现在多个文件中,那么它的编译和装载比整个源文件出现在一个文件中时要做更多说明,但是这是操作系统的任务,而不是语言特性.
+For the moment,we will assume that both functions are in the same file,so whatever you have learned about running C programs will still work.
+现在我们将假定所有函数都在相同的文件中,从而前面所学的有关运行C程序的知识依然有效.
+    The function power is called twice by main,in the line
+    main主程序中调用了两次power函数,如下行
+         printf("%d %d %d\n", i, power(2,i),power(-3,i));
+Each call passes two arguments to power,which each time returns an integer to be formatted and printed.In an expression,power(2,i) is an integer just as 2 and i are.
+每一调用传递两个参数给pwoer函数,而函数每次调用返回一个按格式打印的整型.在一个表达式中,power(2,i) 就像2和i一样是一个整数.
+(Not all functions produce an integer value;we will take this up in Chapter 4).
+(并不是所有的函数都产生一个整型值;我们将在第四章讨论这些).
+The first line of power itself,
+power函数本身的第一行,
+        int power(int base, int n)
+declares the parameter types and names,and the type of the result that the function returns.The names used by power for its parameters are local to power,and are not visiable to any other function:
+定义参数类型和名字,并且定义了函数返回结果的类型.power的这些参数名字只能在power内部使用,在其他任何函数都不可见:
+other routines can use the same names without conflict.This is also true of the variables i and p: the i in power is unrelated to the i in main.
+在其他函数中能使用相同的名字而不会冲突.对变量i和p来说也是如此:power函数中的i与main函数中的i不相关.
+    We will generally use parameter for a variable named in the parenthesized list in a function definition,and argument for the value used in a call of the function.
+    一般而言,把在一个函数的定义中圆括号括住的表中命名的变量叫做parameter,而把函数调用中与参数对应的值叫做argument.
+The terms formal argument and actual argument are sometimes used for the same distinction.
+术语形参和实参有时用来区别这它们.
+    The value that power computes is returned to main by the return statement.Any expression may follow return:
+    power函数计算后产生的值由return语句返回到主函数中.关键字return可以后跟任何表达式:
+        return expression;
+A function need not return a value;a return statement with no expression causes control,but no useful value,to be returned to the caller,
+函数不一定需要返回值;不含表达式的return语句使控制返回给调用者,但不返回有用的值.
+as does "falling off the end" of a function by reaching the terminating right brace.And the calling function can ignore a value returned by a function.
+如同在达到函数的终结右花括号时"脱离函数"一样.调用函数也可以忽略一个函数所返回的值.
+    You may have noticed that there is a return statement at the end of main.Since main is a function like any other,it may return a value to its caller,
+    你可能注意到在main函数底部有return语句.因为main本身也是一个函数像其他任何函数一样,它可以返回一个值给它的调用者,
+which is in effect the environment in which the program was executed.Typically,a return value of zero implies normal termination;non-zero values signal unusual or erroneous termination conditions.
+这个调用者实际是程序执行的环境.一般而言,一个返回值为0表明正常终止;非0值信号为异常或错误终结条件.
+In the interests of simplicity,we have omitted return statements from our main functions up to this point,but we will include them hereafter,as a reminder that programs should return status to their environment.
+出于简单的考虑,我们省略了主函数中的return语句,但是我们今后将包含return语句,来提醒程序应该给它们的环境返回状态.
+    The declaration
+        int power(int m,int n);
+just before main says that power is a function that expects two int arguments and returns an int.This declaration,which is called a function prototype,has to agree with the definition and uses of power.
+在main函数之前的声明语句,表示power是一个有两个参数并返回一个整数值的函数.这个声明,被叫做函数原型,要与power的定义和使用相一致.
+It is an error if the definition of a function or any uses of it do not agree with its prototype.
+如果函数定义或使用与原型不一致都将会产生错误.
+    Parameter names need not agree.Indeed,parameter names are optional in a function prototype,so for the prototype we could have written
+    形参名称不需要相同.确切的说,形参名称在函数原型中是可选择的,所以刚才的原型也可以写成
+        int power(int, int);
+Well-chosen names are good documentation,however,so we will often use them.
+但是选择一个合适的形参名字是一种良好的文档编写风格,所以我们在使用原型时仍将使用它们.
+    A note of history: The biggest change between ANSI C and earlier versions is how functions are declared and defined.In the original definition of C,the power function would have been written like this:
+    历史回顾:在ANSI C和早期的版本之间最大的改变是函数的声明与定义.在C语言的最初版本中,power函数要写成如下形式.
+/* power : raise base to n-th power; n>= 0 */
+/*             (old-style version */
+int power(base,n)
+int base,n;
+{
+    int i,p;
+    p = 1;
+    for(i = 1; i <= n; ++i)
+        p = p * base;
+    return p;
+}
+The parameters are named between the parentheses,and their types are declared before the opening left brace;undeclared parameters are taken as int(The body of the function is the same as before).
+参数的名字在圆括号中指定,但参数类型则在花括号之前声明;未定义参数类型缺省使用int类型(函数体与ANSI C相同).
+    The decalration of power at the beginning of the program would have looked like this:
+    在程序开始的地方,可以将power函数定义如下这个样子:
+        int power();
+No parameter list was permitted,so the compiler could not readily check that power was being called correctly.Indeed,since by default power would have been assumed to return an int,
+没有参数列表也是允许的,这样编译器不能快捷的对power函数做合法性检查.实际上,由于缺省power函数能够返回int型,
+the entire declaration might well have been omitted.
+整个函数定义都可以被忽略.
+    The new syntax of function prototypes makes it much easier for a compiler to detect errors in the number of arguments or their types.
+    新的函数原型语法使编译器更加容易检测函数参数数目和类型方面的错误.
+The old style of declaration and definition still works in ANSI C,at least for a transition period,but we strongly recommend that you use the new form when you have a compiler that supports it.
+在ANSI C中旧的声明和定义仍然有效,至少它可以作为一个过渡时期.但是我们强烈建议在编译器支持的情况下,使用新的方式声明函数.
+ 
+Exercise 1-15. Rewrite the temperature conversion program of Section 1.2 to use a function for conversion.
+
+1.8 Arguments - Call by Value
+    One aspect of C functions may be unfamiliar to programmers who are used to some other languages,particularly Fortran.In C,all function arguments are passed "by value." 
+    那些使用其他语言的,特别是Fortran语言的程序员对C语言关于函数参数的这样一个方面可能不太熟悉.在C语言中,所有函数参数都是"按值"传递的.
+This means that the called function is given the values of its arguments in temporary variables rather than the originals.
+这意味着被调用函数所得到的变量值在临时变量中而不是原来的变量中.
+This leads to some different properties than are seen with "call by reference" languages like Fortran or with var parameters in Pascal,
+这样的特性比那些"按引用"的程序语言,例如Fortran,或者采用var参数的语言,如Pascal有所不同,
+in which the called routine has access to the original argument,not a local copy.
+这些语言中,被调用函数必须访问原来的参数,而不是局部拷贝变量.
+    The main distinction is that in C the called function cannot directly alter a variable in the calling function;it can only alter its private,temporary copy.
+    主要的区别在于C语言中被调用函数不能直接更改调用函数中变量的值,它只能更改函数私有的,临时拷贝的值.
+    Call by value is an asset,however,not a liability.It usually leads to more compact programs with fewer extraneous variables,
+    按值调用有益处而非弊端.它能使用更少的外部变量,从而使程序更紧凑,
+because parameters can be treated as conveniently initialized local varibales in the called routine.For example,here is a version of power that makes use of this property.
+因为采用按值调用时被调用函数中参数可以像处理局部变量那样.例如,下面是利用者一性质的power函数的版本.
+/* power: raise base to n-th power; n >= 0 ; version 2*/
+int powerV2(int base,int n)
+{
+    int p;
+    for(p = 1; n > 0; --n)
+        p = p * base;
+    return p;
+}
+The parameter n is used as a temporary variable,and is counted down(a for loop that runs backwards) until it becomes zero;there is no longer a need for the variable i.
+参数n用来作为临时变量,并向下计数.(一个向后执行的for循环语句) 直到它变为0;这里没有必要使用变量i了.
+Whatever is done to n inside power has no effect on the argument that power was originally called with.
+在power函数内部对n的操作不会影响到调用power函数的参数原始变量.
+    When necessary,it is possible to arrange for a function to modify a variable in a calling routine.The caller must provide the address of the variable to be set(technically a pointer to the variable),
+    在有必要时,也可以对函数修改,使之可以修改调用程序中的变量.调用者必须向被调函数提供所要改变值的变量的地址(技术角度看,地址就是一个指向变量的指针),
+and the called function must declare the parameter to be a pointer and access the variable indirectly through it.We will cover pointers in Chapter 5.
+被调用函数必须把对应的参数定义为指针类型,并通过它间接的访问变量.我们将在第五章具体讨论指针.
+    The story is different for arrays.When the name of an array is used as an argument,
+    对于数组来说情况就不同了.当数组名称作为参数时,
+the value passed to the function is the location or address of the beginning of the array---there is no copying of array elements.
+传递到函数的值是数组开始的位置或地址---这里不是数组元素的拷贝副本.
+By subscripting this value,the function can access and alter any element of the array.This is the topic of the next section.
+被调用函数可以通过数组下标值来访问并改变数组中的任何元素.这个将是下一节讨论的问题.
+ 
+
+
+1.9 Character Arrays
+    The most common type of array in C is the array of characters.To illustrate the use of character arrays and functions to manipulate them,
+    C中最常见的数组类型是字符数组.为了说明字符数组以及用于处理它们的函数,
+let's write a program that reads a set of text lines and prints the longest.The outline is simple enough:
+让我们编写一个程序,用于读取一组文本行并打印最长的文本.对其算法描述非常简单:
+        while(there's another line)
+            if(it's longer than the previous longest)
+                save it
+                save its lenght
+        print longest line
+This outline makes it clear that the program divides naturally into pieces.One piece gets a new line,another tests it,another saves it,and the rest controls the process.
+这一算法描述得很清楚,程序很自然的分成若干部分,其中一部分用于读取新行,一部分测试读入的行,另一部分保存该行,剩余部分控制这个过程.
+    Since things divide so nicely,it would be well to write them that way too.Accordingly,let us first write a separate function getline to fetch the next line of input.
+    由于分割比较好,故可以像这样来编写程序.首先,让我们首先写编写一个独立的函数getline来读取输入的下一行.
+We will try to make the function useful in other contexts.At the minimum,getline has to return a signal about possible end of file;
+我们将尝试使函数在其他地方也能有用.getline函数最少需要在读到文件末尾时返回一个信号;
+a more useful design would be to return the length of the line,or zero if end of file is encountered.Zero is an acceptable end-of-file return because it is never a valid line length.
+一个更有用的设计是返回该行的长度,或者遇到文件结束符时返回0.由于0不是一个有效的行长度,因此是一个可接受的标记文件结束符的返回值.
+Every text line has at least one character;even a line containing only a newline has length 1.
+每一行至少一个字符;即使一行仅包含一个换行符长度为1.
+    When we find a line that is longer than the previous longest line,it must be saved somewhere.This suggests a second function,copy,to copy the new line to a safe place.
+    当我们找到一行比之前的行还要长时,就把这个新行保存起来.这意味着需要用第二个函数copy来拷贝新行到一个安全的位置.
+    Finally,we need a main program to control getline and copy.Here is the result.
+    最后,需要用主函数main程序来控制getline函数和copy函数.这里是程序.
+#include<stdio.h>
+ 
+#define MAXLINE 1000  /* maximum input line size */
+ 
+int getline(char line[],int maxline);
+void copy(char to[],char from[]);
+ 
+int main()
+{
+    int len;        /* current line length */
+    int max;        /* maximum length seen so far */
+    char line[MAXLINE];        /* current input line */
+    char longest[MAXLINE];    /* longest line saved here */
+    max = 0;
+    while((len = getline(line,MAXLINE)) > 0){
+        if(len > max){
+            max = len;
+            copy(longest, line);
+        }
+    }
+    if(max > 0)
+        printf("%s",longest);
+    return 0;
+}
+ 
+/* getline:read a line into s,return length */
+int getline(char s[],int lim)
+{
+    int c,i;
+    for(i = 0;i <lim-1 && (c=getchar())!=EOF && c!='\n';++i)
+        s[i]=c;   
+    if(c=='\n'){
+        s[i]=c;
+        ++i;
+    }
+    s[i] = '\0';
+    return i;
+}
+ 
+/* copy: copy 'from' into 'to';assume to is big enough */
+void copy(char to[],char from[])
+{
+    int i;
+    i = 0;
+    while((to[i] = from[i]) != '\0')
+        ++i;
+}
+    The functions getline and copy are declared at the beginning of the program,which we assume is contained in one file.
+    函数getline和copy都是定义在程序开始的地方,我们假定它们都是包含在同一个文件中.
+    main and getline communicate through a pair of arguments and a returned value.In getline,the arguments are declared by the line
+    main函数和getline函数通过一对变量和一个返回值进行交换.在getline函数中,两个参数是通过如下定义
+        int getline(char s[].int lim)
+which specifies that the first argument,s,is an array,and the second,lim,is an integer.The purpose of supplying the size of an array in a declaration is to set aside storage.
+它把第一个参数s声明为数组,第二个参数lim声明为整数.在定义中提供数组大小其目的是留出存储空间.
+The length of the array s is not necessary in getline since its size is set in main.getline uses return to send a value back to the caller,just as the function power did.
+在getline函数中没有必要声明数组s的长度,因为数组的大小是在main函数中设置的.就像power函数所做的一样,getline使用return语句返回一个值给它的调用者.
+This line also declares that getline returns an int;since int is the default return type,it could be omitted.
+这一行语句也说明了getline函数返回int类型;由于int为缺省类型,所以它可以忽略.
+    Some functions return a useful value;others,like copy,are used only for their effect and return no value.The return type of cppy is void,which states explicitly that no value is returned.
+    一些函数返回有用的值;另一些函数,像copy函数,用来仅仅执行一些动作,并不返回值.copy函数的返回类型是void,它用来明确指明该函数不返回任何值.
+    getline puts the character '\0'(the null character,whose value is zero)at the end of the array it is creating,to mark the end of the string of characters.
+    getline函数把字符'\0'(即空字符,其值为0)放到它所建立的数组的末尾,以标记字符串的结束.
+This convention is also used by the C language:when a string constant like
+这一约定同样被C语言采用:当一个字符串常量像这样
+        "hello\n"
+appears in a C program,it is stored as an array of characters containing the characters of the string and terminated with a '\0' to mark the end.
+出现在C程序中,它被作为字符数组存储,该数组包含这个字符串中的各个字符并以'\0'来标记字符串结束.
+h	e	l	l	o	\n	\0
+The %s format specification in printf expects the corresponding argument to be a string represented in this form.
+printf函数中格式化说明%s要求所对应的参数是以这种形式表示的字符串.
+copy also relies on the fact that its input argument is terminated by '\0',and it copies this character into the output argument.(All of this implies that '\0' is not a part of normal text.)
+copy函数同样依赖这个事实,它的输入参数通过'\0'结束,并且它拷贝到输出变量.(所有这些说明'\0'不是通常文本的一部分)
+    It is worth mentioning in passing that even a program as small as this one presents some sticky design problems.For example,what should main do if it encounters a line which is bigger than its limit?
+    值得一提的是在传递参数时,即使是一个程序像本例这么小的程序也会遇到某些麻烦的问题.例如,main函数应该如何处理当所遇到的行比限制的最大值还要大时?
+getline works safely,in that it stops collecting when the array is full,even if no newline has been seen.By testing the length and the last character returned,main can determine whether the line was too long,
+getline函数执行是安全的,当数组满了时它就停止读取字符,即使它还没有遇到换行符.main函数可以通过测试长度和最后返回的字符来判断该行是否过长.
+and then cope as it wishes.In the interests of brevity,we have ignored the issue.
+并且按其需求来处理它.为了程序简洁一些,我们忽略了这个问题.
+    There is no way for a user of getline to know in advance how long an input line might be,so getline checks for overflow.
+    getline函数没有办法预先知道一个输入有多长,所以getline函数采用了检查溢出的方法.
+On the other hand,the user of copy already knows(or can find out)how big the strings are,so we have chosen not to add error checking to it.
+另一方面,copy函数的调用程序已经知道(或者说能够找出)所处理的字符串有多长,所以我们可以选择不增加错误检查.
+    
+Exercise 1-16. Revise the main routine of the longest-line program so it will correctly print the length of arbitrarily long input lines,and as much as possible of the text.
+ 
+Exercise 1-17. Write a program to print all input lines that are longer than 80 characters.
+ 
+Exercise 1-18. Write a program to remove trailing blanks and tabs from each line of input,and to delete entirely blank lines.
+ 
+Exercise 1-19. Write a function reverse(s) that reverses the character string s.Use it to write a program that reverses its input a line at a time.
+
+
+
+1.10 External Variables and Scope
+    The variables in main,such as line,longest,etc.,are priate or local to main.Because they are declared within main,no other function can have direct access to them.
+    在主函数中变量如line,longest等,都是主函数的私有或者局部变量.因为它们都是在main函数中定义的,其他函数不能直接访问他们.
+The same is true of  variables in other functions;for example,the variable i in getline is unrelated to the i in copy.Each local variable in a funcation comes into existence only when the function is called,
+在其他函数中变量也是同样的如此;例如,在getline函数中的变量i是一个copy函数中的i没有关系.在函数中的每一个局部变量仅当在函数被调用时存在,
+and disappears when the function is exited.This is why such variables are usually known as automatic variables,following terminology in other languages.
+当函数离开的时候消失.这也是仿照其他语言通常把这类变量称为自动变量的原因.
+We will use the term automatic henceforth to refer to these local variables.(Chapter 4 discusses the static storage class,in which local variables do retain their values between calls.)
+我们后面将使自动变量用它来指代本地变量.(章节4讨论静态存储类,属于静态存储类的局部变量在函数调用之间保持值不变.)
+    Because automatic variables come and go with function invocation,they do not retain their values from one call to the next,and must be explicitly set upon each entry.If they are not set,
+    因为自动变量值出现和消失在函数执行期间,故函数的两次调用期间自动变量不保留在之前调用时所赋的值.并且在每次函数调用执行时都要显式给其赋值.如果没有给自动变量赋值,
+they will contain garbage.
+那么它们存放将是无用数据.
+    As an alternative to automatic variables,it is possible to define variables that are external to all functions,that is,variables that can be accessed by name by any function.
+    作为对自动变量的替代,可以定义所有函数使用的外部变量,也就是说,即可以通过变量名称被任何函数访问的变量.
+(This mechanism is rather like Fortran COMMON or Pascal variables declared in the outermost block.)
+(这种机制非常像Fortran的COMMON或者Pascal最外层程序中定义的变量.)
+Because external variables are globally accessible,they can be used instead of argument lists to communicate data between functions.Furthermore,
+因为外部变量可以全局访问,因此它们可以用来替代参数列表用于在函数间交换数据.此外,
+because external variables remain in existence permanently,rather than appearing and disappearing as functions are called and exited,
+因为外部变量在程序执行期间一直存在.而不是在函数调用时产生,也不在函数执行完毕后消失.
+they retain their values even after the functions that set them have returned.
+即使从为其赋值的函数返回后仍保留原来的值不变.
+    An external variable must be defined,exactly once,outside of any function;this sets aside storage for it.The variable must also be declared in each function that wants to access it;
+    外部变量必须在所有函数外部定义,且只能定义一次;目的是为其分配存储单元.在每个函数中都要对所要访问的外部变量进行声明;
+this states the type of the variable.The declaration may be an explicit extern statement or may be implicit from context.To make the discussion concrete,
+说明外部变量的类型.在声明时可以用extern显式指定或者通过上下文隐式声明.为了更具体的讨论外部变量,
+let us rewrite the longest-line program with line,longest,and max as external variables.This requires changing the calls,declarations,and bodies of all three functions.
+让我们重写打印最长文本行的程序,把line,longest和max声明为外部变量.这需要改变所有这三个函数的调用,定义和的函数体.
+#include <stdio.h>
+ 
+#define MAXLINE 1000    /* maximum ipnput line size */
+ 
+int max;    /* maximum length seen so far */
+char line[MAXLINE]; /* current input line */
+char longest[MAXLINE];    /* longest line saved here */
+ 
+int getline(void);
+void copy(void);
+ 
+ 
+/* print longest input line; specialized version */
+int main()
+{
+    int len;
+    extern int max;
+    extern char longest[];
+    max = 0;
+    while((len = getline()) > 0)
+        if(len > max){
+            max = len;
+            copy();
+            }
+    if(max > 0) /* there was a line  */
+        printf("%s",longest);
+    return 0;
+}
+ 
+/* getline: specialized version */
+int getline(void)
+{
+    int c,i;
+    extern char line[];
+    for(i = 0;i < MAXLINE - 1 && (c=getchar()) != EOF && c != '\n';++i)
+        line[i] = c;
+        if(c == '\n'){
+            line[i] = c;
+            ++i;
+            }
+    line[i]='\0';
+    return i;
+}
+ 
+/* copy: specialized version */
+void copy(void)
+{
+    int i;
+    extern char line[],longest[];
+    i = 0;
+    while((longest[i] = line[i]) != '\0')
+        ++i;
+}
+    The external variables in main,getline,and copy are defined by the first lines of the example above,which state their type and cause storage to be allocated for them.
+    在这个列子中,前几行定义了在main,getline和copy函数中使用的几个外部变量,声明它们的类型并使系统为之分配存储单元.
+Syntactically,external definitions are just like definitions of local variables,but since they occur outside of functions,the variables are external.Before a function can use an external variable,
+从语法上说,外部变量定义就像局部变量定义一样.但由于它们出现在函数的外部,这些变量就成了外部变量.一个在函数在使用外部变量之前,
+the name of the variable must be made known to the fucntion.One way to do this is to write an extern declaration in the function;
+必须使变量的名称对函数可见.一种方法是在该函数中编写一个外部声明在函数中,
+the declaration is the same as before except for the added keyword extern.
+声明除了在变量之前添加一个关键字extern,其他地方与之前相同.
+    It certain circumstances,the extern declaration can be omitted.If the definition of an external variable occurs in the source file before its use in a particular function,
+    在确定环境下,extern声明可以被省略.如果一个外部变量的定义在源文件中出现在使用它的函数之前,
+then there is no need for an extern declaration in the function.The extern declarations in main,getline and copy are thus redundant.
+这样在函数中就没有必要使用extern定义.于是,main,getline,copy函数中的几个extern声明都是多余的.
+In fact,common practice is to place definitions of all external variables at the beginning of the source file,and then omit all extern declarations.
+事实上,通常的额做法是所有的外部变量声明放置在源文件开始的地方,这样就省略了extern声明.
+    If the program is in several source files,and a variable is deifned in file1 and used in file2 and file3,then extern declarations are needed in file2 and file3 to connect the occurrences of the variable.
+    如果程序包含多个源文件,某个变量定义在file1中,需要在file2和file3中使用,那么在file2和file3文件中就需要使用extern说明来连接该变量的出现.
+The usual practice is to collect extern declarations of variables and functions in a separate file,historically called a header,that is included by #include at the front of each source file.
+通常的实践做法是把变量的extern说明与函数放在一个单独的文件中,历史上称作头文件,在每个源文件的前面通过#include语句把所有要用的头文件包含进来.
+The suffix .h is conventional for header names.The functions of the standard library,for example,are declared in headers like <stdio.h>.
+后缀.h被约定为头文件的扩展名.例如,标准库中的函数都是定义在诸如<stdio.h>的头文件声明中.
+This topic is discussed at length in Chapter 4,and the library itself in Chapter 7 and Appendix B.
+这个主题将在第四章讨论,而库函数本身在第七章和附录B中讨论.
+    Since the specialized versions of getline and copy have no arguments,logic would suggest that their prototypes at the beginning of the file should be getline() and copy().
+    由于特别的版本的getline和copy函数没有参数,按道理,在源文件开始处它们的原型应该是getline()和copy().
+But for compatibility with older C programs the standard takes an empty list as an old-style declaration,and turns off all argument list checking;
+但是为了与老的C程序兼容,C标准把空变量列表作为老方式声明,并关闭对所有参数的检查;
+the word void must be used for an explicitly empty list.We will discuss this further in Chapter 4.
+当明确参数列表为空时必须使用关键字void.第四章讨论将对此做进一步讨论.
+    You should note that we are using the words definition and declaration carefully when we refer to external variables in this section.
+    你要注意到在这一节中我们说道外部变量使非常谨慎用着两个单词definition和declaration.
+"Definition" refers to the place where the variable is created or assigned storage;"Declaration" refers to places where the nature of the variable is stated but no storage is allocated.
+"定义"指变量创建或分配存储单元的位置;"声明"指明变量性质的位置,但并不分配存储空间.
+    By the way,there is a tendency to make everything in sight an extern variable beacuse it appears to simplify communications-argument lists are short and variables are alwasy there when you want them.
+    顺便指出,现在有一种使所有看得见的东西作为外部变量的趋势.因为这样似乎可以简化通信---变量列表变得简短了,而且变量需要时总是存在.
+But external variables are always there even when you don't want them.Relying too heavily on external variables is fraught with peril since it leads to programs whose data connections are not at all obvious---
+但是外部变量当你不需要时也总是存在.过多依赖的外部变量时充满了危险,因为它将导致程序的数据兰溪变得不是很明显---
+variables can be changed in unexpected and even inadvertent wasys,and the program is hard to modify.The second version of the longest-line program is inferior to the first,
+外部变量的值可能被意外的或不经意的的时候改变,并且程序很难修改.上面打印最长文本行的程序的第二个版本就不如第一个版本,
+partly for these reasons,and partly because it destorys the generality of two useful functions by wiring into them the names of the variables they manipulate.
+之所以如此,部分是由于这个原因,还有部分由于它把两个有用的函数所操纵的变量的名字绑定到了函数中,使这两个函数失去了一般性.
+    At this point we have covered what might be called the conventional core of C.With this handful of building blocks,it's possible to write useful programs of considerable size,
+    就此,我们已经对C语言传统的核心进行了介绍.通过这些少量的构件,我们能够写出具有相当的规模的有用程序,
+and it would probably be a good idea if you paused long enought to do so.These exercises suggest programs of somewhat greater complexity than the ones earlier in this chapter.
+如果你能够花上较长的时间来写一些程序是个不错的主意.下面给出得练习比本章前面的更加复杂一些.
+ 
+Exercise 1-20. Write a program detab that replaces tabs in the input with the proper number of blanks to spae to the next tab stop.Assume a fixed set of tab stops,say every n columns.Should n be a variable or a symbolic parameter?
+ 
+Exercise 1-21. Write a program entab that replaces strings of blanks by the minimum number of tabs and blanks to achieve the same spacing.Use the same tab stops as for detab.When either a tab or a single blank would suffice to reach a tab stop,which should be given preference?
+ 
+Exercise 1-22. Write a progarm to "fold" long input lines into two or more shorter lines after the last non-blank character that occurs before the n-th column of input.Make sure your program does something intelligent with very long lines,and if there are no blanks or tabs before the specified column,
+ 
+Exercise 1-23. Write a program to remove all comments from a C program.Don't forget to handle quoted strings and character constants properly.C comments do no nest.
+ 
+Exercise 1-24. Write a program to check a C program for rudimentary syntax erros like unbalanced parentheses,brackets and braces.Don't forget about quotes,both single and double,escape sequences,and comments.(This program is hard if you do it in full generality.)*
+
+end~
+ 
