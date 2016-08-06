@@ -1,0 +1,78 @@
+Chapter 6 Structures
+    A structure is a collection of one or more variables,possibly of different types,grouped together under a single name for convenient handling.
+    结构是一个或多个变量的集合,这些变量可能属于不同的类型,为了方便处理将它们组织在一个名称下.
+(Structures are called "records" in some languages,notably Pascal.) 
+(结构也叫做"记录"在一些语言,特别是Pascal语言.)
+Structures help to organize complicated data,particulaly in large programs,because they permit a group of related variables to be treated as a unit instead of as separate entities.
+由于结构将一组相关变量看作一个单元而不是各自独立的实体,所以通常被用来组织复杂数据,特别是在大型程序中.
+    One traditional example of structure is the payroll record:an employee is described by a set of attributes such as name,address,social security number,salary,etc.Some of these in turn could be structures:
+    用来描述结构的一个传统例子是工资记录:每个员工由一组属性来描述,像姓名,住址,社保号,工资等.其中一些可以定义为结构类型:
+a name has several components,as does an address and even a salary.Another example,more typical for C,somes from graphics:a point is a pair of coordinates,a rectangle is a pair of points,and so on.
+姓名可以分成几个组成部分,地址和工资也可能出现相同情况.另一个例子,在C语言中,更加典型的例子来自于图形:点由一对坐标定义,矩形由两个点定义.等等.
+    The main change made by the ANSI standard is to define structure assignment - structures may be copied and assigned to,passed to functions,and returned by functions.
+    ANSI C标准中的主要变化是定义了对结构的赋值操作 --- 结构可以拷贝,赋值,传递给函数,通过函数返回.
+This has been supported by most compiler for many years,but the properties are now precisely defined.Automatic structures and arrays may now also be initialized.
+很久以来大多数编译程序就支持这一点,只是其性质进行了更明确的定义.自动结构和数组现在也允许初始化.
+
+6.1 Basic of Structures
+    Let us create a few structures suitable for graphics.The basic object is a point,which we will assume has an x coordinate and a y coordinate,both integers.
+    让我们创建一些适用于绘图的结构.最基本对象是点,这些点我们假设用x与y坐标表示它,且x,y坐标都取整形.
+
+The two compontes can be placed in a structure declared like this:
+两个部分可以在结构中声明像如下:
+    struct point{
+        int x;
+        int y;
+    };
+    The keyword struct introduce a structure declaration,which is a list of declarations enclosed in braces.An optional name called a structure tag may follow the word struct(as with point here).
+    关键字struct引入结构说明,这种说明是一组说明在花括号之内.struct后跟的名字是可选的,它是结构的标记(这里的是point).
+The tag names this kind of structure,and can be used subsequently as a shorthand for the part of the declaration in braces.
+这个标记用来命名结构,它可以作为花括号内说明的简写.
+    The variables named in structure are called members.A structure member or tag and an ordinary(i.e.,non-member) variable can have the same name withou conflict,
+    在结构中命名的变量叫做成员.结构成员或者标记和普通变量(就是非成员)能够拥有相同的名字而不会冲突.
+since they can always be distinguished by context.
+因为它们总是能够通过上下文区分.
+Furthermore,the same member names may occur in different structures,although as a matter of style one would normally use the same names only for close related objects.
+另外,不同的结构之中的成员可以采用相同的名字,尽管从程序风格上说,通常只有密切关联的对象的才会使用相同的名称.
+    A struct declaration defines a type.The right brace that terminated list of members may be followed by a list of variables,just for any basic type.That is
+    一个结构声明定义一种类型.在标志结构成员表结束的右括号之后,可以像其他基本类型一样跟随一个变量表.例如,
+        struct {...} x,y,z;
+is syntactically analogous to 
+其语法类似于
+        int x,y;
+in the sense that each statement declares x,y and z to be variables of named type and cause space to be set aside for them.
+其意义就是这两个声明都用于把x,y和z声明为指明类型的变量并且为它们分配存储空间.
+    A structure declaration that is not follow by a list of variables reserves to storage;it merely describes a template or the shape of a structure.If the declaration is tagged,however,
+    若在结构声明之后没有跟随变量列表,则不需要为之准备存储空间;它仅仅描述了一个结构的模版或者形状.但是如果声明带有标记,那么,
+the tag can be used later in definitions of instnce of structure.For example,given the declaration of point above,
+那么在以后定义结构实例时可以使用它.例如,对于上面给出的point的声明,
+    struct point pt;
+defines a variable pt which is a structure of type struct point.A structure can be initialized by following its definition with a list of initializers,each a constant expression,for the members:
+定义了一个point结构型的变量pt.结构可以在申明时初始化,方法是在其定义后加上初始化符号表,初始化符号表与各个成员对应的必须是常量表达式:
+    struct point maxpt ={ 320,200  }; 
+An automatic structure may also be initialized by assignment or by calling a function that returns a structure of the right type.
+自动结构也可以通过赋值或调用返回结构类型的函数进行初始化.
+   A member of particular structure is referred to in an expression by a construction of the form
+   在表达式中可以通过如下形式来引用一特定结构中的成员
+        structure-name.member
+The structure member operator "." connects the structure name and the member name.To print the coordinates of the point pt,for instance,
+结构成员的运算符"."把结构名与成员名连接起来.例如,可以用如下语句打印出点pt的坐标,
+        printf("%d%d",pt.x,pt.y);
+or compute the distance from the origin(0,0) to pt,
+或者用如下代码计算pt与原点(0,0)的距离,
+        double dist,sqart(double);
+        dist = sqart((double)pt.x*pt.x + (double)pt.y*pt.y);
+    Structure can be nested.One representation of a rectangle is a pair of point that denote the diagonally opposite corners:
+    结构可以被嵌套.我们可以用对角线上的两个点来定义矩形.其定义如下:
+
+        struct rect {
+            struct point pt1;
+            struct point pt2;
+        }
+The rect strucutre contains two point structures.If we declare screen as 
+所定义的结构rect包含两个点结构了性.如果我们定义screen为
+        struct rect screen;
+then
+        screen.pt1.x
+refers to the x coordinate of the pt1 member of the screen.
+访问screen的成员pt1的x坐标值.
