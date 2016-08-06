@@ -999,3 +999,205 @@ Exercise 5-16.Add the -d("directory order") option,which makes comparisons only 
 
 Exercise 5-17.Add a field-handling capability,so sorting may be done on fields within lines,each field sorted according to an independent set of options.(The index for this book was sorted with -df for the index category and -n for the page numbers)
 
+
+5.12 Complicated Declarations
+    C is sometimes castigated for the syntax of its declarations,particularly ones that involve pointers to functions.The syntax is an attempt to make the declaration and the use agree;
+   C语言有时因声明的语法问题而受到人们的批评,特别是那些涉及到指向函数的指针的语法.C语言的语法试图使说明和使用相一致;
+it works well for simple cases,but it can be confusing for the harder ones,because declarations cannot be read left to right,and because parentheses are over-used.The difference between
+对于简单的情况它很有效,但对于复杂的情况可能令人混淆,因为声明不能从左到右读,而且使用了太多的圆括号.如下所示的两个说明:
+        int *f(); /* f: function returning pointer to int */
+and 
+        int (*pf)(); /* pf:pointer to function returning int */
+illustrates the problem:* is prefix operator and it has lower precedence than (),so parentheses are necessary to force the proper association.
+所表示含义的差别说明:*是一个前缀运算并且优先级低于(),所以后一个说明中必须使用圆括号以使运算分量能够正确的结合.
+    Although truly complicated declarations rarely arise in practice,it is important to know how to understand them,and if necessary,how to create them.
+    尽管真正复杂的说明实际上会很少出现,但对于读者而言,懂得怎么去理解,甚至怎么建立使用这些复杂的说明是很重要的.
+One good way to synthesize declarations is in small steps with typedef,which is discussed in Section 6.7.As an alternative,
+一个好方式是使用typedef在几步之内就可以合成说明,6.7节将讨论这个方法.作为一种变通,
+in this section we will present a pair of programs that convert from valid C to a word description and back again.The word description reads left to right.
+在本节我们将讨论一对用于将一个将正确的C说明转换为文字描述和完成相反转换的程序.其中文字描述应该从左往右读.
+    The first,dcl,is the more complex.It converts a C declaration into a word description,as in these examples:
+    第一个程序dcl要复杂一些.它将C语言的说明转换为文字描述,正如下例所示:
+char **argv
+    argv:pointer to pointer to char
+int (*daytab)[13]
+    daytab: pointer to array[13] of int
+void *comp()
+    comp: function returning pointer to void 
+void (*comp)()
+    comp:pointer to function returning void
+char (*(*x())[])()
+    x:function returning pointer to array[] of pointer to function returning char
+char (*(*x[3])())[5]
+    x: array[3] of pointer to function returning pointer to array[5] of char
+    dcl is based on the grammar that specifies a declarator,which is spelled out precisely in Appendix A,Section 8.5;this is a simplified form:
+    dcl程序基于声明的语法,附录A.8.5节对该语法做了精确的描述;下面是简化的语法形式:
+        dcl:optional *'s direct-dcl
+        direct-dcl:name 
+                       (dcl)
+                        direct-dcl()
+                       direct-dcl[optional size]
+In words,a dcl is a drect-dcl,perhaps preceded by *'s.A direct-dcl is a name,or a parentheized dcl,or a direct-dcl followed by parentheses,or a direct-dcl followed by brackets with an optional size.
+简而言之,说明符即前面也许带有符号*的直接说明符.直接说明符可以是名字,由一对圆括号扩住的说明符,后面跟有一对圆括号的直接说明符或后面跟有由方括号扩住可选大小的直接说明符.
+    This grammar can be used to parse declartions.For instance,consider this declarator:
+    该语法可以用来分析C语言的声明符.例如,研究下面的说明符:
+        (*pfa[])()
+pfa will be identified as a name and thus as a direct-dcl.Then pfa[] is also a direct-dcl.Then *pfa[] is a recognized as a dcl.so (*pfa[]) is a direct-dcl.Then (*pfa[]) is a direct-dcl and thus a dcl.
+在dcl程序分析该说明时,pfa将被识别出是一个名字,从而它是一个直接说明符.于是pfa[]也是一个直接说明符.接着*pfa[]被识别为一个说明符.所以(*dfa[])是一个直接说明符.
+We can also illustrate the parse with a parse tree like this(where direct-dcl has been abbreviated to dir-dcl):
+我们可以用如图所示的分析数来说明分析的过程.
+
+    The heart of the dcl program is a pair of functions,dcl and dirdcl,that parse a declaration according to this grammer.Because the grammar is recursively defined,
+    del程序的核心是一对函数dcl和dirdcl,它们依照说明符的语法来分析说明.因为该语法是递归定义的.
+the function call each other recursively as they recognize pieces of a declaration;the program is called a recursive-descent parser.
+所以在识别一个说明的组成部分时这两个函数将互相递归调用;我们称该程序是一个递归下降分析程序.
+/* dcl:parse a declarator */
+void dcl(void)
+{
+	int ns;
+	for(ns=0;gettoken()=='*';) /* count *'s */
+		ns++;
+	dirdcl();
+	while(ns-->0)
+		strcat(out,"pointer to");
+}
+
+/* dirdcl: parse a direct declarator */
+void dirdcl(void)
+{
+	int type;
+	if(tokentype=='('){
+		dcl();
+		if(tokentype!=')')
+			printf("error:missing )\n");
+	}
+	else if(tokentype==NAME) /* variable name */
+		strcpy(name,token);
+	else
+		printf("error:expected name or (dcl)\n");
+	while((type=gettoken())==PARENS||type==BRACKETS)
+	{
+		if(type==PARENS)
+			strcat(out,"function returning");
+		else{
+			strcat(out," array");
+			strcat(out,token);
+			strcat(out," of");
+		}
+	}
+}
+    Since the programs are intended to be illustrative,not bullet-proof,there are significant restrictions on dcl.
+    该程序旨在说明问题,并不追求完美,所以dcl程序在功能上有许多明显的缺陷.
+It can only handle a simple data type like char or int.It does not handle argument types in functions,or qualifiers like const.Spurious blanks confuse it.
+它只能处理像char或int这样简单的数据类型.而不处理函数中的变量类型,或诸如const这样的限定符.它不能辨认不合逻辑的空白.
+It doesn't do much error recovery,so invalid declarations will also confuse it.These improvements are left as exercises.
+由于没有进行太多的错误恢复处理,因此它也不能辨认无意义的说明.这些方面的改进留做练习.
+    Here are the global variables and the main routine:
+    下面是相应的全局变量和主程序:
+#include  <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+#define MAXTOKEN 100
+
+enum { NAME,PARENS,BRACKETS } ;
+
+void dcl(void);
+void dirdcl(void);
+
+int gettoken(void);
+int tokentype; /* type of last token */
+char token[MAXTOKEN]; /* last token string */
+char name[MAXTOKEN]; /* identifier name */ 
+char datatype[MAXTOKEN]; /* data type = char,int,etc. */
+char out[1000]; /* output string */
+
+int main() /* convert declaration to words */
+{
+	while(gettoken()!=EOF) /* 1st token on line */
+	{
+		strcpy(datatype,token);
+		out[0] = '\0';
+		dcl(); /* parse rest of line */
+		if(tokentype!='\n')
+		 printf("syntax error\n");
+		printf("%s:%s %s\n",name,out,datatype);
+	}
+	return 0;
+}
+    The function gettoken skips blanks and tabs,then finds the next token in the input;a "token" is a name,a pair of parentheses,a pair of brackets perhaps including a number,or any other single character.
+    函数gettoken跳过空格和制表符,然后查找输入中的下一个单词输入;"单词"包括名字,一对圆括号,可能包含数字的中括号或者是任何其他单个单词.
+int gettoken(void) /* return next token */
+{
+	int c,getch(void);
+	void ungetch(int);
+	char *p = token;
+	while((c=getch())==' '||c=='\t'){
+		;
+	}
+	if(c=='('){
+		if((c=getch())==')'){
+			strcpy(token,"()");
+			return tokentype=PARENS;
+		}else{
+			ungetch(c);
+			return tokentype=')';
+		}
+	}else if(c=='['){
+	   for(*p++=c;(*p++=getch())!=']';)
+			;
+		*p='\0';
+		return tokentype = BRACKETS;
+	}else if(isalpha(c)){
+		for(*p++=c;isalnum(c=getch());){
+			*p++=c;
+		}
+		*p='\0';
+		ungetch(c);
+		return tokentype = NAME;
+	}else{
+		return tokentype=c;
+	}
+}
+getch and ungetch were discussed in Chapter 4.
+getche和ungetch增在第四章讨论过.
+    Going in the other direction is easier,especially if we do not worry about generating redundant parentheses.
+    另一个方向的转换更容易,尤其是在不考虑生成多余的圆括号的情况下.
+The program undcl converts a word description llike 'x is a function returning a pointer to an array of pointers to functions returning char,"which we will express as
+程序undcl把诸如'x是一个返回值为指向以为数组的指针的函数,该一维数组由指向返回值为字符类型的函数的指针组成",并且如下形式表示的文字描述
+    x() * [] * () char
+to 
+    char (*(*x())[])()
+The abbreviated input syntax lets us reuse the gettoken function.undcl also uses the same external vriables as dcl does.
+由于输入的语法坐了简化,所以可以重用上面定义的gettoken函数.undcl和dcl使用了相同的外部变量.
+/* undcl:convert word description to declaration */
+
+main(){
+	int type;
+	char temp[MAXTOKEN];
+	
+	while(gettoken()!=EOF){
+		strcpy(out,token);
+		while((type=gettoken())!='\n'){
+			if(type==PARENS||type==BRACKETS)
+				strcat(out,token);
+			else if(type=='*'){
+				sprintf(temp,"*%s",out);
+				strcpty(out,temp);
+			}else if(type==NAME){
+				srpintf(temp,"%s %s",token,out);
+				strcpy(out,temp);
+			}else
+				printf("invalid iput at %s\n",token);
+		}
+			printf("%s\n",out);
+	}
+	return 0;
+}
+
+Exercise 5-18. Make dcl recover from input errors.
+
+Exercise 5-19. Modify undcl so that it does not add redundant parentheses to declarations.
+
+Exercise 5-20. Expand dcl to handle declarations with function argument types,qualifiers llike const,and so on.
+
