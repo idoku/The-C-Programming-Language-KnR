@@ -76,3 +76,113 @@ then
         screen.pt1.x
 refers to the x coordinate of the pt1 member of the screen.
 访问screen的成员pt1的x坐标值.
+
+
+6.2 Structures and Functions
+    The only legal operations on a structure are copying it or assigning to it as unit,taking it address with &,and accessing its members.
+    对结构类型的合法操作只有拷贝,作为单元对其赋值,通过&取地址,和访问其成员这几种.
+Copy and assignment include passing arguments to functions and returning values from functions as well.Structures may not be compared.
+拷贝和赋值包含传递参数给函数和从函数返回值,结构之间不能比较.
+A structure may be initialized by a list of constant member values;an automatic structure may also be initialized by an assignment.
+结构能够通过一组成员常量初始化结构;自动结构能够通过赋值来初始化.
+    Let us investigate structures by writing some functions to manipluate points and rectangles.There are at least three possible approaches : pass components separately,pass an entire structure,
+    为了加强对结构的理解,我们通过编写几个对于点和矩形进行操作的函数.至少有3中可能的方式:一是分别传递各成员,二是传递整个结构;
+or pass a point to it.Each has its good points and bad points.
+或者传递指针.每一种方法都各有利弊.
+    The first function,makepoint,will take two integers and return a point structure:
+    第一个函数是makepoint,将需要两个整型并返回一个point结构:
+        /* makepoint: make a point from x and y component */
+        struct point makepoint(int x,int y)
+        {
+            struct point temp;
+            temp.x = x;
+            temp.y = y;
+            return temp;
+        }
+Notice that there is no conflict between the argument name and the member with the same name;indeed the re-use of the names stresses the relationship.
+注意,变量名称和成员名称相同不会引起冲突;实际上,重名强调了两者之间的关系.
+    makepoint can now be used to initialize any structure dynamically,or to provide structure arguments to a function:
+    makepoint现在能够动态初始化任意结构,也可以向函数提供结构类型变量:
+        struct rect screen;
+        struct point middle;
+        struct point makepoint(int,int);
+        screen.pt1 = makepoint(0,0);
+        screen.pt2 = makepoint(XMAM,YMAX);
+        middle = makepoint((screen.pt1.x + screen.pt2.x)/2,
+                                      (screen.pt1.y + screen.pt2.y)/2);
+    The next step is a set of functions to do arithmetic on points.For instance,
+    下面通过一系列的函数对点进行算术运算,例如,
+        /* addpoint: add two points */        
+        struct point addpoint(struct point p1,struct point p2)
+        {
+            p1.x += p2.x;
+            p1.y += p2.y;
+            return p1;
+        }
+Here both the arguments and the return value are structures.
+这里参数和返回值都是结构类型.
+We incremented the components in p1 rather than using an explicit temporary variable to emphasize that structure parameters are passed by value like any others.
+之所以直接将相加的结果所得结果赋值给p1,而不是使用显示的临时变量,是为了突出结构参数和其他类型参数一样都是按值传递的.
+    As another example,the function ptinrect test whether a point is inside a rectangle,where we have adopted the convention that a rectangle includes its left and bottom sides but not its top and right sides:
+    另外一个例子,函数ptinrect用于测试是否点在矩形之内,我们采用这样的约定,矩形包括其左边和底边,但不包括它的顶边和右边:
+        /* ptinrect: return 1 if p in r,0 if not */
+        int ptinrect(struct point p,struct rect r)
+        {
+            return p.x >= r.pt1.x && p.x <= r.pt2.x 
+                && p.y >= r.pt1.y && p.y <= r.pt2.y;
+        }
+This assumes that the rectangle is represented in a standard form where the pt1 coordinates are less than the pt2 coordinates.The following function returns a rectangle guaranteed to be in canonical form:
+这里假设矩形是用标准形式表示的,其中pt1的坐标小于pt2的坐标.下面这个函数返回一个规范形式的矩形:
+        #define min(a,b) ((a) < (b) ? (a) : (b))
+        #define max(a,b) ((a) > (b) ? (a) :(b))
+        /* canonrect : canonicalize coordinates of rectangle */
+        struct rect canonrect(struct rect r)
+        {
+              struct rect temp;
+              temp.pt1.x = min(r.pt1.x,r.pt2.x);
+              temp.pt1.y = min(r.pt1.y,r.pt2.y);
+              temp.pt2.x = max(r.pt1.x,r.pt2.x);
+              temp.pt2.y = max(r.pt1.y,r.pt2.y);
+        }
+    If a large structure is to be passed to a function,it is generally more eifficient to pass a pointer than to copy the whole strucutre.Structure pointers are just like pointers to ordinary variables.The declaration
+    如果传递给函数的结构很大,使用指针时效率通常比拷贝结构时高.结构指针类似普通变量的指针.说明语句:
+        struct point *pp;
+says that pp is a pointer to structure of type struct point.If pp points to a point structure,*pp is the structure,and (*pp).x and (*pp).y are the members.To use pp,we might write,for example,
+将pp定义成指向struct point类型的指针.如果pp指向一个point结构,*pp就是该结构,而(*pp).x和(*pp).y就是结构成员.若要使用pp,我们可以写如下语句,例如:
+    struct point origin,*pp;
+    pp = &origin;
+    printf("origin is (%d,%d)\n",(*pp).x,(*pp).y);
+The parentheses are neccessary in (*pp).x because the precedence of the structure member operator "." is higher than "*".The expression *pp.x means *(pp.x),which is illegal here because x is not a pointer.
+(*pp).x中的圆括号是必须的,因为结构成员运算符.的优先级比*高.表达式*pp.x含义是*(pp.x),因为x不是指针,所以该表达式非法.
+    Pointers to structures are so frequently used that an alternative notation is provided as a shorthand.If p is a pointer to a structure,then
+    因为结构指针的使用频率很高,于是出现了一种简写方式作为可选的标记法.如果p是结构指针,则
+        p->member-of-strucutre
+refers to the particuar member.(The operator -> is a minus sign immediately followed by >.) So we could write instead:
+引用特定的结构成员.(运算符->是由减号后紧跟>组成的.)因此也可以这样改写:
+        printf("original is (%d,%d)\n",pp->x,pp->y);
+    Both . and -> associate from left to right,so if we have
+    . 和 -> 都是从左到右结合的运算,所以如果有
+        struct rect r,*rp = &r;
+then these four expressions are equivalent:
+那么下面的4个表达式是等价的:
+        r.pt1.x
+        rp->pt1.x
+        (r.pt1).x
+        (rp->pt1).x
+    The structure operators . and ->,together with () for function calls and [] for subscripts,are at the top of the precedence hierarchy and thus bind very tightly.For example,given the declaration
+    结构成员运算符 . 和 -> ,函数调用(),以及下标操作符[]的优先级最高.从而结合最紧密.例如,给定如下声明
+        struct{
+            int len;
+            char *str;
+        } *p;
+then
+        ++p->len
+increments len,not p,because the implied parenthesization is ++ (p->len).Parentheses can be used to alter the binding:(++p)->len increments p before accessing len,and (p++)->len icrements p afterward.
+增加的是len的值而不是p的值,因为->的优先级比++的高(p->len先执行).括号能够改变绑定次序:(++p)->len先进行p加一操作,在对len操作.而(p++)->len先操作len,再将p加1.
+(This last set of parentheses is unnecessary.)
+(该表达式中括号可以省略.)
+    In the same way,*p->str fetches whatever str points to;*p->str++ increments str after accessing whatever it point to(just like *s++);(*p->str)++ increments whatever str points to;
+    同理,*p->str取值是str指向的值;*p->str++先取str的值,再将str加1.(与*s++一样);(*p->str)++将str指向的值加1;
+and *p++->str increments p after accessing whatever str points to.
+而*p++->str先取str所指向的值,再将p加1.
+
