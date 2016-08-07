@@ -186,3 +186,103 @@ increments len,not p,because the implied parenthesization is ++ (p->len).Parenth
 and *p++->str increments p after accessing whatever str points to.
 而*p++->str先取str所指向的值,再将p加1.
 
+
+
+6.4 Pointer to Structures
+    To illustrate some of the considerations involved with pointers to and arrays of structures,let us write the keyword-counting program again,this time using pointers instead of array indices.
+    为了说明一些与指向结构数组有关的一些问题讨论,让我们重写keyword-counting程序,这次我们用指针来替代数组下标.
+    The external declaration of keytab need not change,but main and binsearch do need modification.
+    外部声明的keytab变量不需要改变,但是main函数和binsearch函数需要修改.
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+
+#define MAXWORD 100
+
+int getword(char *,int);
+struct key *binsearch(char *,struct key *,int);
+
+/* count C keywords */
+main()
+{	
+	char word[MAXWORD];
+	struct key *p;
+	
+	while(getword(word,MAXWORD)!=EOF)
+		if(isalpha(word[0]))
+			if((p=binsearch(wrod,keytab,NKEYS))!=NULL)
+				p->count++;
+	for(p = keytab;p<keytab+NKEYS;p++)
+		if(p->count > 0)
+			printf("%4d %s\n",p->count,p->word);
+	return 0;
+}
+
+/* binsearch:find word in tab[0]...tab[n-1] */
+struct key *binsearch(char *word,struct key *tab,int n)
+{
+	int cond;
+	struct key *low=&tab[0];
+	struct key *high = &tab[n];
+	struct key *mid;
+	
+	while(low<=high)
+	{
+		mid = low + (high - low)/2;
+		if((cond=strcmp(word,mid->word))<0)
+			high = mid;
+		else if(cond>0)
+			low = mid+1;
+		else
+			return mid;
+	}
+	return NULL;
+}
+    There are several things worthy of note here.First,the declaration of binsearch must indicate that it returns a pointer to struct key instead of an integer;
+    这里有几个值得注意的地方.首先,binearch返回一个指向struct key指针而不是一个整数;
+this is declared both in the function prototype and in binsearch.If binsearch finds the word,it return a pointer to it;if it fails,it returns NULL.
+这个函数原型和binsearch中都有声明.如果binsearch找到与输入单词匹配的数组元素,那么返回指向该数组元素的指针,否则返回NULL.
+    Second,the elements of keytab are now accessed by pointers,This requires significant changes in binsearch.
+    第二点,keytab结构的元素现在都是通过指针来访问,所以需要在binsearch中做较大的修改.
+    The initializers for low and high are now pointers to the beginning and just past the end of the table.
+    low和high的初始化符现在都是指向表头和表尾后面一个元素的指针.
+    The computation of the middle element can no longer be simply
+    不能再以简单的表达式计算中间元素的位置
+        mid = (low + high) / 2 /* wrong */
+because the addition of two pointers is illegal.Subtracction is legal,however,so high - low is the number of elements,and thus
+因为对两个指针执行加法运算是非法的.然而指针的减法却是合法的,所以hight - low 的值就是元素的个数.,所以
+        mid = low + ( hight - low) / 2
+sets mid to point to the element halfway between low and high.
+设置mid为指向low和high中间的元素.
+    The most important change is to adjust the algorithm to make sure that it does not generate an illegal pointer or attempt to access an element outside the array.
+    最主要的改变在于调整了算法使得不会产生非法的指针,以及保证不访问数组范围之外的元素.
+The problem is that &tab[-1] and &tab[n] are both outside the limits of the array tab.The former is strictly illegal,and it is illegal to dereference the latter.
+问题是&tab[-1]和&tab[n]都是超出了数组tab的范围.前者是绝对非法的,而后者进行对数组的推延也是非法的.
+The language definition does guarantee,however,that pointer arithmetic that involves the first element beyond the end of an array(that is,&tab[n]) will work correctly.
+然而对数组结束之后的第一个元素的调用(就是&tab[n])的指针运算是可以正常运行的,这可由语言的定义提供保证.
+    In main we wrote
+    主程序中有这样的语句
+        for (p = keytab; p < keytab + NKEYS;p++)
+If p is a pointer to a structure,arithmetic on p takes into account the size of the structure,
+如果p指针指向一个结构,对p的算术运算要考虑结构的大小,
+so p++ increments p by the correct amount to get the next element of the array of structures,and the test stops the loop at the right time.
+所以p++在p的基础上加上正确的值,从而得到结构数组的下一个元素,这样使得测试可以保证循环正确结束.
+    Don't assume,however,that the size of structure is the sum of the sizes of its members.Becasue of alignment requirements for different objects,there may be unnamed "holes" in a structure.
+    然而,千万不要假设结构的大小等于它成员大小之和.因为对不同的对象有不同的对齐要求,所以结构中可能出现无名字的"洞".
+Thus,for instance,if a char is one byte and an int four bytes,the structure
+例如,对于实例,如果char是占用一个字节而int是占用4个字节,那么结构
+        structure{
+            char c;
+            int i;
+        };
+might well require eight bytes,not five.The sizeof operator returns the proper value.
+则需要8个字节,而不是5个字节.使用sizeof运算返回结构大小正确的值.
+    Finally,an aside on program format:when a function returns a complicated type like a structure pointer,as in
+    最后一点,关于程序的格式问题:当一个函数返回是复杂类型,像结构指针,比如
+        struct key *binsearch(char *word,struct key *tab,int n)
+the function name can be hard to see,and to find with a next editor.Accordingly an alternate style is sometimes used:
+函数名称不容易一眼就看清楚,也不容易使用文本编辑器查找.上述语句可以通过这样改写:
+        struct key *
+        binsearch(char *word,struct key *tab,int n)
+This is a matter of personal taste;pick the form you like and hold to it.
+这纯属个人习惯问题,可以选择自己喜欢的方式并保持自己的风格.
