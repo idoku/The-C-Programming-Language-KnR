@@ -286,3 +286,181 @@ the function name can be hard to see,and to find with a next editor.Accordingly 
         binsearch(char *word,struct key *tab,int n)
 This is a matter of personal taste;pick the form you like and hold to it.
 这纯属个人习惯问题,可以选择自己喜欢的方式并保持自己的风格.
+
+
+6.5 Self-referential Structures
+    Suppose we want to handle the more general problem of counting the occurrences of all the words in some input.Since the list of words isn't known in advance,
+    假设我们想要处理更一般的问题,即统计所有单词的出现次数.因为预先不知道单词表,
+we can't conveniently sort it and use a binary seach.Yet we can't do a linear seach for each word as it arrives,to see if it's already been seen;the program would take too long.
+我们不能按通常的方法排序并使用二分查找.也不能对每一个单词做一次线性查找,看它是否存在;若这样的话,程序将执行太长的时间.
+(More precisely,its running time is likely to grow quadratically with the number of input words.) How can we organize the data to copy efficiently with a list of arbitrary words?
+(更确切的说,它的运行时间随着单词输入的次数而成二次方的增加.)我们怎么能够组织数据来处理任意的单词呢?
+    One solution is to keep the set of words seen so far sorted all times,by placing each word into its proper position in the order as it arrives.This shouldn't be done by shifting words in a linear array,
+    一个解决方法是:通过将输入单词有序的放入正确的位置.从而在任意时刻都保持已输入单词的有序性.然而这不能通过在线性数组中简单的移动单词来达到目的.
+though -- that also takes too long.Instead we will use a data structuure called a binary tree.
+尽管可行,因为它显然会导致程序执行的时间过长.作为替代,我们将使用数据结构叫做二叉树.
+    The tree contins one "node" per distinct word;each node contains
+    每个不同的单词在树中都是一个"node";每一个节点包含
+        a pointer to the text of the word
+        一个指向单词文本的指针
+        a count of the number of occurrences
+        一个出现的次数的计数值
+        a pointer to the left chid node
+        一个指向左子节点的指针
+        a pointer to the right child node
+        一个指向右子节点的指针
+No node may have more than two children;it might have only zero or one.
+没有任何节点包含多于两个子节点;当然也可能只包含0个或1个.
+    The nodes are maintained so that at any node the left subree contains only words that are lexicographically less than the word at the node,and the right subtree contains only words that are greater.
+    节点的组织方法如下:每个节点的左子树包含按字典序小于该节点的那些节点,而右子树只包含按字典序大于该节点的节点.
+This is the tree for the sentence "now is the time for all good men to come to the aid of their party",as built by inserting each word as it is encountered:
+下面是对句子"now is the time for all good man to come to the aid of their party"中个单词按序插入后构件的树.
+    
+To find out whether a new word is already in the three,start at the root and compare the new word to the word stored at that node.If they match,the question is answered affirmatively.
+为查找一个新的单词是否已经存在树中,可从根节点处开始并且比较这个新的单词与节点的单词是否匹配.如果匹配,则得到肯定的答案.
+If the new word is less than the tree word,continue searching at the left child,otherwise at the right child.If there is no child in the required direction,the new word is not in the tree,
+如果新的单词小于树上节点的单词,则继续搜索左子树,否则搜索右子树.如果没有子树在搜索方向上,那么新单词不在该树中,
+and in fact the empty slot is the proper place to add the new word.This process is recursive,since the search from any node uses a search from one of its children.Accordingly,
+事实上这个空槽是正确的位置来添加这个新的单词.因为从任意节点触发的查找使用了它一个子树的查找过程,所以这个过程是递归的.相应的,
+recursive routines for insertion and printing will be most natural.
+对于插入和打印的操作,使用递归是最自然的.
+    Going back to the description of a node,it is conveniently represented as a structure with four components:
+    回到节点描述,一个更方便的表示是使用具有一下四个成份的结构
+        Struct tnode{        /* the tree node; */
+            char *word;      /* points to the text */
+            int count;        /* number of occurrences */
+            struct tnode *left;     /*  left child  */
+            struct tnode *right;    /* right child */
+        }
+This recursive declaration of a node might look chancy,but it's correct.It is illegal for a structure to contian an instance of itself,but
+这个节点的递归定义看上去可能有些危险,但是它是正确的.一个结构包含其自身是非法的,但是
+    struct tnode *left;
+declares left to be a pointer to a tnode,not a tnode itsefl.
+定义了left为指向tnode的指针,而不是tnode本身.
+    Occasionally,one needs a variation of self-referential structures:two structures that refer to each other.The way to handle this is:
+    偶尔,一种需要自身引用结构的变形:两个结构互相引用对方.这个解决方法如下:
+        struct t{
+            ...
+            struct s *p;   /* p points to an s */
+        };
+        struct s{
+            ...
+            struct t *q;    /* q points to a t */
+        }
+    The code for the the whole program is surprisingly small,given a handful of supporting routines like getword that we have already written.
+    代码对整个程序来说惊人的短小,如果给了一些处理过的函数来支持它,像getword我们之前编写过.
+The main routine reads words with getword and installs them in the tree with addtree.
+main程序通过getword读取单词并且通过addtree函数把它们插入到树中.
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+
+#define MAXWORD 100
+struct tnode *addtree(struct tnode *,char *);
+void treeprint(struct tnode *);
+int getword(char *,int);
+
+/* word frequency count */
+main()
+{
+	struct tnode *root;
+	char word[MAXWORD];
+	root = NULL;
+	while(getword(word,MAXWORD)!=EOF)
+		if(isalpha(word[0]))
+			root = addtree(root,word);
+	treeprint(root);
+	return 0;
+}
+    The function addtree is recursive.A word is presented by main to the top level(the root) of the tree.At each stage,that word is compared to the word already stored at the node,
+    函数addtree是递归的.由主程序给出一个单词作为树的最顶层(即树的根).在每一步中,新单词与存在节点中的单词比较,
+and is percolated down to either the left or right subtree by a recursive call to addtree.Eventually the word either matches something already in the tree(in which case the count is incremented),
+随后通过对addtree的调用而经过左子树或右子树.该单词最终将于树中某节点匹配(在这种情况下计数值1),
+or a null pointer is encountered,indicating that a node must be created and added to the tree.If a new node is created,addtree returns a pointer to it,which is installed in the parent node.
+或遇上一个空指针,表明必须创建一个节点再加到树中去.如果一个新的节点被创建,addtree返回一个指针指向它,并将该指针存入父节点.
+    struct tnode *talloc(void);
+    char *strdup(char *);
+    
+    /* addtree: add a node with w,at or below p */
+    struct tnode *addtree(struct tnode *p,char *w)
+    {
+        int cond;
+        if( p == NULL){ /* a new word has arrived */
+            p = talloc();  /* make a new node */
+            p->word = strdup(w);
+            p->count = 1;
+            p->left = p->right = NULL;
+        }else if((cond = strcmp(w,p->word))==0)
+            p->count++; /* repeated word */
+        else if(cond < 0) /* less than into subtree */
+            p->left  = addtree(p->left,w);
+        else  /* greater than into right subtree */
+            p->right = addtree(p->right,w);
+        return p;
+    }
+    Storage for the new node is fetched by a routine talloc,which returns a pointer to a free space suitable for holding a tree node,and the new word is copied to a hidden place by strdup.
+     新节点的存储区通过调用函数talloc而获得,talloc函数返回一个指针,指向能容纳树节点的自由空间,函数strdup将新的单词拷贝到一个隐藏位置.
+(We will discuss these routines in a moment.)The count is initialized,and the two children are made null.This part of the code is executed only at the leaves of the tree,when a new node is being added.
+(我们稍后讨论这些函数)计数值被初始化,两个子树也置为空.当增加新节点时,这部分代码在叶子端执行.
+We have (unwisely) omitted error checking on the values returned by strdup and talloc.
+我们忽略了strdup和talloc的返回值的错误检查.
+    treepoint prints the tree in sorted order:at each node,it prints the left subtree(all the words less than this word),then the word itself,then the right subtree(all the words greater).
+    treepoint按序打印树;在每个节点,它先打印左子树(所有小于该单词的单词),然后打印单词本身,然后打印右子树(所有大于该单词的单词).
+If you feel shaky about how recursion words,simulate treeprint as it operates on the tree shown above.
+如果你对递归操作感到怀疑的话,不妨对上述树进行treeprint操作.
+        /* treeprint:in-order print of tree p */
+        void treeprint(struct tnode *p)
+        {
+                if(p!=NULL)
+                {
+                    treeprint(p->left);
+                    printf("%4d %s\n",p->count,p->word);
+                    treeprint(p->right);
+                }
+        }
+    A practial note:if the tree becomes "unbalanced" because the words don't arrive in random order,the running time of the program can grow too much.As a worst case,if the words area already in order,
+有一点值得注意:如果由于单词的输入次序不是随机的次序使得树变得"不平衡",程序的运行时间会大大加长.最坏的情况是,如果单词都是有序输入的,
+this program  does an expensive simulation of linear search.There are generalizations of the binary tree that do not suffer from this worst-case behavior,but we will not describe them there.
+程序进行会模拟线性查找.有一些广义二叉树,它们不会受到这个最坏情况的影响,但是这里我们不讨论它们.
+    Before we leave this example,it is also worth a brief digression on a program related to storage allocators.Clearly it's desirable that there be only one storage allocator in program,
+    在我们离开这个例子之前,作为题外话简短讨论下关于存储分配程序的问题.显然,程序中只有一个存储分配程序是可取,
+even though it allocates different kinds of objects.But if one allocator is to process requests for,sya,points to chars and points to structure tnodes,two question arise.
+尽管它需要分配不同对象.但是如果一个分配程序要处理一些请求,比如说,指向字符指针和指向tnodes结构指针,那么会引发两个问题.
+First,How does it meet requirement of most real machines that objects of certain types must satisfy alignment restrictions(for example,integers often must be located at even addresses)?
+第一个,它怎么样满足大多数机器的需求,使得特定类型的对象必须满足对齐限制(例如,整数常常必须分配在偶地址上)?
+Second,What declarations can cope with the fact that an allocator must necessarily return different kinds of pointers?
+第二个,用什么样的说明能够解决这样的问题:分配程序必须返回不同类型的指针?
+    Alignment requirements can generally be satisfied easily,at the cost of some wasted space,by ensuring that the allocator alwasys return a pointer that meets all alignment restrictioins.
+    对齐需求通常容易被满足,通过确保分配程序总是返回满足所有对齐限制的指针,代价是浪费一些存储空间.
+The alloc of Chapter 5 does not guarantee any particular alignment,so we will use the standard library function malloc,which does.In Chapter 8 we will show one way to implement malloc.
+第五章介绍的alloc函数不保证任何特殊的对齐,所以我们将使用标准库函数malloc来保证对齐.在第8章,我们将展示一个方法来实现malloc.
+    The question of the type declaration for a function like malloc is a vexing one for any language that takes its type-checking seriously.In C,the proper method is to declare that malloc returns a pointer to void,
+    对于任何注重检查类型的语言来说,像malloc这样的函数的类型声明问题是非常讨厌的.在C中,一个恰当的方法来定义是让malloc返回一个指向void的指针,
+then explicitly coerce the pointer into the desired type with a cast.malloc and related routines are declared in the standard header <stdlib.h>.Thus talloc can be written as 
+然后再显示地将指针强制转换为想要的类型.malloc和有关的程序都定义在标准头文件<stdlib.h>中,因此可以将talloc写成如下:
+        #include <stdlib.h>
+        /* talloc: make a tnode */
+        struct tnode *talloc(void)
+        {
+            return (struct tnode*)malloc(sizeof(struct tnode));
+        }
+    strdup merely copies the string given by its argument into a safe plcae,obtained by a call on malloc.
+    strdup函数只是把由其变量给出的字符串拷贝到一个安全的位置,可以通过调用malloc实现.
+        char *strdup(char *s) /* make a duplicate of s */
+        {
+            char *p;
+            p = (char *)malloc(strlen(s)+1); /* +1 for '\0' */
+            if(p!=NULL)
+                strcopy(p,s);
+            return p;
+        }
+malloc returns NULL if no space is available;strdup passes that value on,leaving error-handling to its caller.
+如果没有空间可用时,malloc返回NULL值;strdup函数返回值即是malloc的返回值,且strdup将错误处理留给它的调用者.
+    Storage obtained by calling malloc may be freed for re-use by calling free;see Chapter 7 and 8.
+    由调用malloc函数而获得的存储区可以通过调用free来释放掉而重用;见第7章和第8章.
+
+Exercise 6-2. Write a program that reads a C Program and prints in alphabetical order each group of variable names that are identical in the first 6 characters,but different somewhere thereafter.Don't count words within strings and comments.Make 6 a parameter that can be set from the command line.
+
+Exercise 6-3. Write a cross-referencer taht prints a list of all words in a doucment,and,for each word,a list of the line numbers on which it occurs.Remove noise words like "the","and",and so on.
+
+Exercise 6-4. Write a program that prints the distinct words in its input sorted into decreasing order of frequency of occurrence.Precede each word by its count.    
