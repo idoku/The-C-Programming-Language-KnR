@@ -41,11 +41,12 @@ void addword(struct simword *,struct tnode *);
 struct simroot *parse(struct tnode*,int);
 void printlist(struct simroot *,int);
 void printwords(struct simword *);
-
+void ungetch(int c);
+int getch(void);
 // char *strdup(char *s);
 
 /* word frequency count */
-int main()
+int main(int argc,char *argv[])
 {
 	int len=3;
 	struct tnode *root;
@@ -55,6 +56,16 @@ int main()
 	while(getword(word,MAXWORD)!=EOF)
 		if(isalpha(word[0]))
 			root = addtree(root,word);
+			
+	if(argc == 1)
+        len = 3;
+    else if(argc == 2)
+        len = atoi(argv[1]);
+    else {
+        printf("Incorrect number of arguments.\n");
+        return 1;
+    }
+
 	listroot = NULL;
 	listroot = parse(root,len);
 	treeprint(root);
@@ -195,36 +206,68 @@ struct tnode *talloc(void)
 
 
 
-
 /* getwod: get next word or character from inpt */
 int getword(char *word,int lim)
 {
-	int c,getch(void);
+	int c,d,getch(void);
 	void ungetch(int);
 	char *w = word;
 	while(isspace(c=getch()))
 		;
 	if(c!=EOF)
 		*w++=c;
-	if(!isalpha(c))
+	if(!isalpha(c) || c =='-' || c=='#')
 	{
-		*w='\0';
-		return c;
+		for(;--lim>0;w++){
+			if(!isalnum(*w=getch()) && *w!='-'){
+				ungetch(*w);
+				break;
+			}
+		}		
 	}
-	for(;--lim>0;w++){
-		if(!isalnum(*w = getch()))
-		{
-			ungetch(*w);
-			break;
+	else if(c=='\''||c=='\\')
+	{
+		for(;--lim>0;w++){
+			if((*w=getch())=='\\')
+				*++w = getch();
+			else if(*w==c){
+				w++;
+				break;
+			}
+			else if(*w==EOF)
+				break;
 		}
 	}
+	else if(c=='/'){
+		if((d=getch())=='*')
+		   c = comment();
+		else
+			ungetch(d);
+	}	
 	*w='\0';
-	return word[0];
+	return c;
+}
+
+int comment()
+{
+	int c;
+	while((c=getch())!=EOF)
+	{
+		if(c=='*')
+		{
+			if((c=getch())=='/')
+				break;
+		}else{
+			ungetch(c);
+		}
+	}
+	return c;
 }
 
 #define BUFSIZE 100
 char buf[BUFSIZE];  /* buffer for ungetch */
 int bufp = 0;
+
 
 int getch(void)     /* get a(possibly pushed back) character */
 {
