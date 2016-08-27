@@ -558,3 +558,205 @@ install returns NULL if for any reason there is no room for a new entry.
 Exercise 6-5. Write a function undef that will remove a name and definition from the table maintained by lookup and install.
 
 Exercise 6-6.Implement a simple version of the #define processor(i.e.,no arguments) suitable for use with C programs,based on the routines of this section.You may also find getch and ungetch helpful.
+
+
+6.7 Typedef
+    C provides a facility called typedef for creating new data type names,For example,the declaration
+    C语言提供了叫做typedef的功能来创建新的数据类型名称,例如,定义如下
+        typedef int Length;
+makes the name Length a synonym for int.The type Length can be used in declarations,casts,etc.,in exactly the same ways that the type int can be:
+使得名称Length成为int的同义词.类型Length能够被用来声明,转换等.和类型int完全一样:
+        Length len,maxlen;
+        Length *lengths[];
+Similarly,the declaration
+同样的,定义
+        typedef char * String;
+makes String a synonym for char * or character pointer,which may then be used in declarations and casts:
+使得String成为char*或者字符指针的同义词,这样string能够被用来声明和类型转换:
+        String p,lineptr[MAXLINES],alloc(int);
+        int strcmp(String,String);
+        p = (String)malloc(100);
+    Notice that the type being declared in a typedef appears in the position of a variable name,not right after the word typedef.Syntactically,typedef is like the storage classes extern,static,etc.
+    注意typedef中说明的类型在变量名称的位置出现,而不是接着单词typedef后出现.typedef在语法上类似于存储类extern,static等.
+We have used capitalized names for typedefs,to make them stand out.
+由typedef说明的类型以大写开头,用来做区别.
+    As a more complicated example,we could make typedefs for the tree nodes show earlier in this chapter:
+    作为一个更 复杂的例子,我们使用typedefs来重新定义树节点在之前的章节中:
+        typedef struct tnode *Treeptr;
+        typedef struct tnode{ /* the tree node: */
+            char *word; /* points to the text */
+            int count;  /* number of occurrences */
+            Treeptr left;  /* left child */
+            Treeptr right; /* right child */
+        } Treenode
+This creats two new type keywords called Treenode(a structre) and Treeptr(a pointer to the structure).Then the routine talloc could become
+上面创建了两个类型关键词叫做Treenode和Treeptr.那么程序talloc将变成
+        Treeptr talloc(void){
+            return (Treeptr)malloc(sizeof(Treenode));
+        }
+    It must be emphasized that a typedef declaration does not create a new type in any sense;it merely adds a new name for some exsiting type.Nor are there any new semantics:
+    必须强调typedef定义不会创建新的类型在任何意义上;它仅仅增加一个新的名字给一些存在的类型,typedef也没有新的语义内容:
+varibles declared this way have exactly the same properties as variables whose declarations are spelled out explicitly.In effect,typedef is like #define,except that since it is interpreted by the compiler,
+变量定义与显示定义的变量属性完全相同.事实上,typedef也类似于#define语句,只有一点不同:由于可被编译程序解释,
+it can cope with textual substitutions that are beyond the capabilities of the preprocessor.For example,
+它能够处理文本替换.例如,
+        typedef int (*PFI)(char *,char *);
+creates the type PFI,for "pointer to function (of two char * arguments) returning int," which can be used in contexts like
+创建类型PFI,表示"指向函数(只有两个char *参数)返回int类型的函数指针.这可被用于某些场合像,
+        PFI strcmp,numcmp;
+in the sort program of Chapter 5.
+在第五章的排序程序.
+    Besides purely aesthetic issues,there are two main reasons for using typedefs.The first is to parameterize a program against portability problems.
+    除了看上去简洁美观,使用typedefs还有两个主要的原因.第一个原因是参数化程序,提高程序的可移植性.
+If typedefs are used for data types that may be machine-dependent,only typedefs need change when the program is moved.One common situation is to use typedef names for various integer quantities,
+如果typedefs使用的数据类型是依赖于机器的,当程序移植到其它机器时,只需要改变typedef类型的定义.一个常见的情况是使用typedef给不同的整形变量声明,
+then make an approprite set of choices of short,int,and long for each host machine.Types like size_t and ptrdiff_t from the standard library are examples.
+随后为每个宿主机器上选择适当的short,int和long型整数集.例如在标准库中的一些类型,像size_t和ptrdiff_t.
+    The second purpose of typedefs is to provide better documentation for a program - a type called Treeptr may be easier to understand than one declared only as a pointer to a complicated structure.
+    第二个原因是typedef提供了更好的文档化 --- 一个叫做Treeptr的类型显然比一个说明为指向结构的指针更容易理解.
+
+
+6.8 Unions
+    A union is a variable that may hold (at different times) objects of different types and sizes,with the compiler keeping track of size and alignment requirements.
+    联合是一个变量,这个变量能够保存(不同时刻)不同类型和大小的对象,由编译程序负责跟踪分配大小和对齐需求.
+Unions provide a way to manipulate different kinds of data in a single area of storage,without embedding any machine-dependent information in the program.
+联合提供一种方法,可以在单块存储中来操作不同类型的数据,而不需要在程序中嵌入任何机器依赖的信息.
+They are analogous to variant records in Pascal.
+它类似于Pascal中的变量记录.
+    As an example such as might be found in a compiler symbol table manager,suppose that a constant may be an int,a float,or a character pointer.
+    作为一个列子,可以在编译程序的符号表管理程序中找到该例子,假设一个常量可能是int,float,character pointer.
+The value of a particular constant must be stored in a variable of the proper type,
+一个特定常量的值必须存储在一个相应类型的变量中,
+yet it is most convenient for table management if the value occupies the same amount of storage and is stored in the same plcae regardless of its type.
+然而表管理最方便的做法是让该值占有相同大小的存储区,而且忽视其类型而存入同一地方.
+This is  purpose of a union - a single variable that can legitimately hold any one of several types.The syntax is based on structures:
+这就是联合的目的 - 一个简单的变量能够合法的存储任何几种类型中的任意一个.语法基于结构:
+        union u_tag{
+            int ival;
+            float fval;
+            char *sval;
+        } u;
+    The variable u will be large enough to hod the largest of the three types;the specific size is implementation-dependent.Any one of these types may be assigned to u and then used in expressions,
+    变量u足够大以便能保存这三种类型中最大的一个,具体大小依赖于实现.在三个类型中的任何一个能够赋值给u并且在表达式中使用,
+so long as the usage is consistent:the type retrieved must be type most recently stored.It is the programmer's responsibility to keep track of which type is currently stored in a union;
+只要该使用满足一致性:类型取回必须是最后一次存储的类型.跟踪当前存储的联合类型是程序员的职责
+the results are implementation-dependent if something is stored as one type and extracted as another.
+如果存入类型和提取类型不同,则结果取决于实现.
+    Syntactically,members of a union are accessed as
+    按照语法,联合中的成员可访问如下
+        union-name.member
+or 
+        union-pointer->member
+just as for sturctures.If the variable utype is used to keep track of the current type stored in u,then one might see code such as
+和结构一样的访问.如果变量utype被用来跟踪在u中当前类型的存储,可以使用西面的代码来
+        if(utype == INT)
+            printf("%d\n",u.ival);
+        else if(utype == FLOAT)
+            printf("%f\n",u.fval);
+        else if(utype == STRING)
+            printf("%s\n",u.sval);
+        else
+            printf("bad type %d in utype \n",utype);
+    Unions may occur within structures and arrays,and vice versa.The notation for accessing a member of a union in a structure(or vice versa) is identical to that for nested strutures.
+    联合可能在结构和数组中出现,反之也可.访问结构中联合(或反之)的某一个成员的表示方法与嵌套结构的方法一样.
+For example,in the structure array defined by
+例如,在结构数组中定义如下
+        strut
+        {
+            char *name;
+            int flags;
+            int utype;
+            union
+            {
+                int ival;
+                float fval;
+                char *sval;
+            } u;
+        } symtab[NSYM];
+the member ival is referred to as
+成员ival的引用为:
+        symtab[i].v.ival;
+and the first character of the string sval by either of
+而字符串sval的首字符表示为如下两者之一
+        *symtab[i].u.sval;
+         symtab[i].u.sval[0];
+    In effect,a union is a structure in which all members have offset zero from the base,the structure is big enough to hold the "widest" member,
+    事实上,联合就是结构,其所有成员相对于基地址的偏移量为0,这个结构足够大来保存"最宽"的成员,
+and the alignment is appropriate for all of the types in the union.The same operations are permitted on unions as on structures:assignment to or copying as a unit,
+并且对齐适合于联合中所有成员.对联合的运算与对结构的运算相同:赋值或者拷贝整个联合,
+taking the address,and accessing a member.
+取地址以及访问成员.
+    A union may only be initialized with a value of the type of its first member,thus the union u described above can only be initialized with an integer value.
+    一个联合只能用它第一个成员的类型来初始化,从而上述的联合u只能用整形值来初始化.
+    The storage allocator in Chapter 8 shows how a union can be used to force a variable to be aligned on a particular kind of storage boundary.
+    在第8章的存储分配程序将说明特定类型的存储边界上如何使用联合来强制一个变量的对齐.
+
+
+6.9 Bit-fields
+    When storage space is at a premium,it may be necessary to pack several objects into a single machine word;one common use is a set of single-bit flags in applications like compiler symbol tables.
+    当存储空间非常珍贵时,有必要将几个对象打包到一个单一机器字中去;一个常用的方法是使用类似于编译器符号表的单个位标识集合.
+Externally-imposed data formats,such as interfaces to hardware devices,also often require the ability to get at pieces of a word.
+外部增加数据格式,像硬件设备接口,也常需要能够读取字中的部分位的数据.
+    Imagine a fragment of a compiler that manipulates a symbol table.Each identifier in a program has certain information associated with it,for example,whether or not it is a keyword,
+    想象编译器操作符号表的那部分.程序中的每一个标志都有与其关联的特定信息,例如,它是否为关键字,
+whether or not it is external and/or staitc,and so on.The most compact way to encode such information is a set of one-bit flags in a single char or int.
+是否是外部的且(或)静态的,等等.编码这些信息最简洁的方式是使用在单个字符或整数空间内的单个位标志集合.
+    The usual way this is done is to define a set of "masks" corresponding to the relevant bit positions,as in
+    通常采用的方法是定义一些"masks"集来关联位的位置,例如
+        #define KEYWORD 01
+        #define EXTERNAL 02
+        #define STATIC      04
+or 
+        enum { KEYWORD = 01,EXTERNAL =02, STATIC = 04 };
+The numbers must be powers of two.Then accessing the bits becomes a matter of "bit-fiddling" with the shifting,masking,and complementing operators that were described in Chapter 2.
+这些数字必须是2的倍数.然后访问位这些位变成了一个通过shifting,masking及第二章所描述的按位取反运算符的"简单位"操作:
+    Certain idioms appear frequently:
+    惯用法出现频率很高:
+        flags |= EXTERNAL | STATIC;
+turns on the EXTERNAL and STATIC bits in flags,while
+打开EXTERNAL和STATIC位在flags,而
+        flags &= ~(EXTERNAL | STATIC);
+turns them off,and 
+关闭他们,和
+        if((flags & (EXTERNAL | STATIC))==0) ...
+is true if both bits are off.
+如果位都是关闭的,那结果为true.
+    Althouth these idioms are readily mastered,as an alternative C offers the capability of defining and accessing fields within a word directly rather than by bitwise logical operators.
+    尽管这些惯用法很容易掌握,作为可选择的C还提供了另一种方法来定义和访问位,即提供在字内直接定义和访问字段的能力,而不是使用按位与逻辑运算.
+A bit-field,or field for short,is a set of adjacent bits within a single implementation-defined storage unit that we will call a "word." The syntax of field definition and access is based on structures.
+位字段,或者简称为字段,是字中相邻位的集合,所谓字是由实现定义的单一存储单元.字段的定义和访问语法结构上基于结构,
+For example,the symbol table #defines above could be replaced by the definition of three fields:
+例如,符号table #defines 语句可以用3个字段来代替定义:
+    struct{
+        unsigned int is_keyword : 1;
+        unsigned int is_extern :1;
+        unsigned int is_static : 1;
+    } flags;
+This defines a variable called flags that contains three 1-bit fields.The number following the colon represents the field width in bits.
+这种定义变量叫做标志,其包含了3个1位字段.冒号后的数字标识字段的域宽.
+The fields are declared unsigned int to ensure that they are unsigned quantities.
+这段声明无符号整形来保证它们是无符号量.
+    Individual fields are referenced in the same way as other structure members:flags.is_keyword,flags.is_extern,etc.Fields behave like small integers,
+    单一字段的引用方式与结构成员相同的,如:flags.is_keyword,flags.is_extern等等.字段的特征与小数整数相似,
+and may participate in arithmetic expressions just like other integers.Thus the previous examples may be written more naturally as
+与其他整数一样,字段可出现在算术表达式中.所以之前的列子可以编写得更自然一些,
+        flags.is_extern = flags.is_static = 1;
+to turn the bits on;
+位打开:
+        flags.is_extern = flags.is_static = 0;
+to turn them off; and
+位关闭,并且
+        if(flags.is_extern == 0 && flags.is_static == 0)
+            ...
+to test tem.
+用于对is_extern和is_static进行测试.
+    Almost everything about fields is implementation-dependent.Whether a field may overlap a word boundary is implementation-defined.
+    有关字段的所有属性都取决于实现.一个字段是否能覆盖字边界由定义实现.
+Fields need not be named;unnamed fields(a colon and width only) are used for padding.The special width 0 may be used to force alignment at the next word boundary.
+字段可以无名;无名字段(只有冒号和域宽)被用于填充.特殊的域宽0用于强制在下一个字边界对齐.
+    Fields are assigned left to right on some machines and right to left on others.This means that although fields are useful for maintaining internally-defined data structures,
+    在一些机器上字段的分配从字左端到右端,而在另一些机器上则相反.这意味着尽管字段对维护内部定义的数据结构很有用,
+the question of which end comes first has to be carefully considered when picking apart externally-defined data;programs that depend on such things are not portable.Fields may be declared only as ints;
+但当另外选择外部定义的数据时,必须仔细考虑哪端优先的问题,所以依赖这些情况的程序是不可移植的.字段也可能只说明成整形,
+for portability,specify signed or unsigned explicitly.They are not arrays,and they do not have addresses,so the & operator cannot be applied to them.
+为了方便移植,需显式说明该整形是singed还是unsigned.它们不是数组,并且没有地址,因此对它们不能作用&运算符操作.
