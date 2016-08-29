@@ -1,0 +1,80 @@
+CHAPTER 7 Input and Output
+    Input and output facilities are not part of the C language iteslf,so we have not emphasized them in our presentation thus far.Nonetheless,
+    输入和输出功能并不是C语言本身的组成部分,所以到目前为止,我们并没有过多的强调它们.然而,
+parograms interact with thier environment in much more complicated ways than whose we have shown before.In this chapter we will describe the standard libary,
+程序与其环境之间的交互与我们之前所展示的相比复杂了许多.本章我们将描述标准库,
+a set of functions that provide input and output,string handling,storage management,mathematical routines,and a variety of other services for C programs.We will concentrate on input and output.
+一些函数,提供输入,输出和字符串处理,存储管理,数学函数,和一些其他的功能用于C程序.我们将着重讨论输入和输出.
+    The ANSI standard defines these library functions precisely,so that they can exist in compatible form on any system where C exists.
+    标准的ANSI定义了这些库函数,所以这些函数在任何使用C语言的系统中都能以相容的形式存在.
+Programs that confine their system interactions to facilities provided by the standard library can be moved from one system to another without change.
+程序系统交互部分仅仅使用了由标准库提供的功能,那么在系统移植到另一个系统时,不需要修改.
+    The properties of library functions are specified in more than a dozen headers;we have already seen several of these,including <stdio.h>,<stirng.h>,and <ctype.h>.
+    标准库函数的性质分别定义在十几个头文件中;我们之前已经碰到一些,它们是,<stdio.h>,<string.h>和<ctype.h>.
+We will not present the entire library here,since we are more interested in writing C programs that use it.The library is described in detail in Appendix B.
+我们不会罗列整个标准库在这里,我们更感兴趣是编写C程序来使用它们.附录B对标准库做了详细的描述.
+
+7.1 Standard Input and Output
+    As we said in Chapter 1,the library implements a simple model of text input newline character.A text stream consists of a sequence of lines;each line ends with a newline character.
+    正如第一章所述,标准库实现了简单的文本输入输出模式.文本流由一些行组成,每一行的结尾是一个换行符.
+If the system doesn't operate that way,the library does whatever is necessary to make it appear as if it does.For instance,
+如果系统不是这种方式操作,标准库尽可能使该系统适用这种模式.例如,
+the library might convert carriage return and linefeed to newline on input and back again on output.
+标准库可以在输入端将回车和换行符都转换为换行符,而在输出端反向转换.
+    The simplest input mechanism is to read one character at a time from the standard input,normally the keyboard,with getchar:
+    最简单的输入机制是读取一个字符每次从标准输入,一般为键盘,通过getchar函数:
+        int getchar(void)
+getchar returns the next input character each time it is called,or EOF when it encounters end of file.The symbolic constant EOF is defined in <stido.h>.The value is typically -1,
+getchar在每次被调用时返回下一个字符,或者EOF当统计到文件末尾.符号常量EOF被定义在<stdio.h>.其值一般为-1.
+but tests should be written in terms of EOF so as to be independent of the specific value.
+但是程序中应该使用EOF而不是-1来测试文件是否结束,以使得程序独立于EOF的特定值.
+    In many environments,a file may be substituted for the keyboard by using the < convention for input redirection:if a program prog uses getchar,then the command line 
+    在许多环境中,通过使用符号<让一个文件代替键盘来实现输入重定向:如果程序prog中要使用函数getchar,那么命令行
+        prog < infile
+causes prog to read characters from infile instead.The swithcing of the input is done in such a way that prog itself is oblivious to the change;in particular,
+使得程序prog从文件而不是从键盘中读取字符.实际上,输入开关的实现对程序prog本身是透明的,
+the string "< infile" is not included in argv.Input switching is also invsible if the input comes from another program vai a pipe mechanism:on some systems,the command line
+字符串"<inflie"也没有包含在argv的命令变量中.如果输入通过管道机制来自另一个程序,那么这种输入开关也是不可见的:在一些系统中,命令行
+        otherprog | prog
+runs the two programs otherprog and prog,and pipes the standard output of otherprog into the standard input for prog.
+将运行两个程序otherprog和prog,而且将程序otherprog的标准输出流连接到程序prog的标准流上.
+    The function
+        int putchar(int)
+is used for output:putchar(c) puts the character c on the standard output,which is by default the screen.putchar returns the character writeen,or EOF if an error occurs.Again,
+用于输出:putchar(c)输出字符c在标准输出上,这个标准输出默认是屏幕显示.如果没有错误,putchar返回所有字符,如果出现错误则返回EOF.同理,
+output can usually be directed to a file with > filename;if prog uses putchar.
+output能够使用>文件名直接重定向输出到某个文件;如果prog使用putchar输出文件.
+    prog > outfile
+will write the standard output to outfile instead.If pipes are supported,
+将输出标准输出的数据到文件outfile中.如果管道被系统支持,那么命令行
+    prog | anotherprog
+puts the standard output of prog into the standard input of antoherprog.
+将程序prog的标准输出流连接到程序anotherprog的标准输出上.
+    Output produced by printf also finds its way to the standard output,Calls to putchar and printf may be interleaved - output appears in the order in which the calls were made.
+    函数printf也能够用于向标准输出流输出数据,我们在程序中有可能要交叉调用putchar和printf - 输出将按照函数调用的先后次序产生.
+    Each source file that refers to an input/output library function must contain the line
+    每一个使用输入/输出标准库函数的源程序文件必须在引用这些函数之前包含如下语句
+        #include <stdio.h>
+before the first reference.When the name is bracketed by < and > a search is made for the header in a stnadard set of places(for example,on UNXI systems,typically in the directory /user/include).
+当文件名用一对尖括号<和>括起来时,预处理程序在实现定义的有关位置中查找所指明的文件(例如,在UNXI系统中,通常是在目录/user/include中).
+    Many programs read only one input stream and write only one output stream;for such program,input and ouput with getchar,putchar,and printf may be entirely adequate,
+    许多程序只从一个输入流读取数据并且仅仅写入一个输出流输出数据;对于这些程序,输入和输出值只需要getchar,putchar和printf来实现输出即可,
+and is certainly enough to get started.This is particularly true if redirection is used to connect the output of one program to the input of the next.For example,consider the program lower,
+并且能够保证正常启动.尤其是在重定向将一个程序的输出给另一个程序输入的情况下.例如,考虑下面的程序lower,
+which converts its input to lower case:
+这个程序转换输入的小写字母的形式:
+    #include <stdio.h>
+    #include <ctype.h>
+    main() /* lower:convert input to lower case */
+    {
+        int c;
+        while((c=getchar())!=EOF)
+            putchar(tolower(c));
+        return 0;
+    }
+    The function tolower is defined in <ctype.h>;it converts an upper case letter to lower case,and returns other characters untouched.As we mentioned earlier,
+    函数tolower定义在<ctype.h>中;它转换一个大写字母为小写形式,并且原样返回其他字符.在我们之前提到的,
+"functions" like getchar and putchar in <stdio.h> and tolower in <ctype.h> are often macros,thus avoiding the overhead of a function call per character.
+诸如头文件<stdio.h>中的getchar和putchar函数以及<ctype.h>中的tolower"函数"一般都为宏,从而避免了对每个字符都进行函数调用的开销.
+We will show how this is done in Secton 8.5.Regardless of how the <ctype.h> functions are implemented on a given machine,programs that use them are shielded from knowledge of the character set.
+我们将在8.5节介绍其实现方法.无论<ctype.h>中的函数在给定的机器上是如何实现的,使用这些程序都可以不必了解字符集的知识.
