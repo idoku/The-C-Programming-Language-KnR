@@ -211,3 +211,96 @@ void minprintf(char *fmt,...)
 Exercise 7-3. Revise minprintf to handle more of the other facilities of printf.
 
 
+
+7.4 Formatted Input - Scanf
+    The fnction scanf is the input analog of printf,providing many of the same conversion facilities in the opposite direction.
+    输入函数scanf对应于输出函数printf,它在与后者反向上提供同样多的转换功能.
+        int scanf(char *format,...)
+scanf reads characters from the standard input,interprets them according to the specification in format,and stores the results through the remaining arguments.
+scanf函数从标准的输入中读取字符,按照format中的转换规格说明对字符序列进行解释,并把结果存储在其余的变量中.
+The format argument is described below;the other arguments,each of which must be a pointer,indicate where the corresponding converted input should be stored.
+下面将讨论格式化变量format;其他变量必须是一个指针,用于指明相对应的转换后的输入应该存放的位置.
+As with printf,this section is a summary of the most useful features,not an exhaustive list.
+像printf一样,本节介绍大多数有用的特性,但不是全部的功能列表.
+    scanf stops when it exhausts its format string,or when some input fails to match the control specification.It returns as its value the number of success items were found.
+    当scanf函数使用完了格式输入串或当一些输入无法与控制说明相匹配时,它就停止运行.并返回成功匹配和赋值的输入项的个数.
+This can be used to decide how many items were found.On end of file,EOF is returned;note that this is different from 0,
+所以返回值可以作为判断已获得输入值的输入项的依据.在文件末尾,EOF被返回;注意这与返回值0不同.
+which means that the next input character does not match the first specification in the format string.The next call to scanf resumes searching immediately after the last character alredy converted.
+0意味着下一个输入字符没有匹配第一个说明符.下一次对这个函数的调用将从上一次成功转换的最后一个字符的下一个字符开始继续搜索.
+    There is also a function sscanf that reads from a string instead of the standard input:
+    另外一个输入函数sscanf,用于从一个字符串而不是标准输入流中读取字符序列:
+        int sscanf(char *string,char *format,arg1,arg2,...)
+It scans the string according to the format in format,and stores the resulting values through arg1,arg2,etc.These arguments must be pointers.
+它按照格式变量format中说明的格式从字符串string中读取字符序列,并且把结果存储在arg1,arg2等这些变量中.这些参数必须是指针.
+    The format string usually contains conversion specifications,which are used to control conversion of input.The format string may contain:
+    格式化字符串通常包含转换规格说明,其用来控制输入转换.格式化字符串通常包含:
+Blanks or tabs,which are ignored.(空格或制表符.在处理中被忽略.)
+Ordinary characters(not %),which are expected to match the next non-white space character of the input stream.(普通字符序列,不包含%,用于匹配输入流中下面尚待读入的非空白字符序列.)
+Conversion specifications,consisting of the character %,an optional assignment suppression character *,an optional number specifying a maximum field width,an optional h,l,or L indicating the width of the target,and a conversion character.(转换规格,依次由一个%,一个可选的*用于赋值屏蔽字符,一个可选的整数用于指定最大字段宽,一个可选的h,l或L用于指明转换对象的宽和一个转换字符.)
+A conversion specification directs the conversion of the next input field.Normally the result is placed in the variable pointed to by the corresponding argument.
+一个转换规格说明控制下一个输入字段的转换过程.通常结果保存在相应的参数所指定的变量中.
+If assignment suppression is indicated by the * character,however,the input field is skipped;no assignment is made.An input field is defined as a string of non-white space characters;
+如果转换规格说明中有用作屏蔽字符的*,则输入字段被跳过,不进行赋值;输入字段是非空白符组成的字符串;
+it extends either to the next white space character or until the field width,if specified,is exhausted.
+它的宽度要么直至下一个空白符,要么直至指定的最大字段宽.
+This implies that scanf will read across line boundaries to find it input,since newlines are white space.(White space characters are blank,tab,newline,carriage return,vertical tab,and formfeed).
+这表明这个sacnf将读取越过行边界读取它的输入,因为换行符也是空白符.(空白符字符是空格符,制表符,换行符,回车符,纵向制表符,和换页符).
+    The conversion character indicates the interpretation of the input field.The corresponding argument must be a pointer,as required by the call-by-value semantics of C.
+    转化字符用于指明如何解释输入字段.按照C语言按值调用的语义.对应的变量必须是一个指针.
+conversion characters are show in Table 7-2.
+转换字符列于表7-2中.
+
+The conversion characters d,i,o,u,and x may be preceded by h to indicate that a pointer to short rather than int appears in the argument list,
+转换字符d,i,o,u和x可以在前面加上h来表明其参数列表中指向short型指针而不是int类型的指针,
+or by l(letter ell) to indicate that a pointer to long appears in the argument list.
+或者通过l表明其参数列表中有一个指向long类型的指针.
+Similarly,the conversion characters e,f,and g may be preceded by l to indicate that a pointer to double rather than float is in the argument list.
+同理,转换字符e,f和g可以在前面通过l表明在参数列表中有一个指向double类型而不是float类型的指针.
+    As a first example,the rudimentary calculator of Chapter 4 can be written with scanf to do the input conversion:
+    做为一个例子,通过使用scanf函数进行输入转换来改写在第4章出现的具有基本元算功能的计算器程序:
+#include <stdio.h>
+main() /* rudimentary calculator */
+{
+    double sum,v;
+    sum = 0;
+    while(scanf("%lf",&v)==1)
+        printf("\t%.2f\n",sum+=v);
+    return 0;
+}
+    Suppose we want to read input lines that contain dates of the form
+    假设我们想要读取包含数据形式的输入行
+        25 Dec 1998
+The scanf statement is
+则相应的scanf语句为:
+    int day,year;
+    char monthname[20];
+    sacnf(%d %s %d",&day,monthname,&year);
+No & is used with monthname,since an array name is a point.
+没有&用给monthname,因为数组名本身就是指针.
+    Literal characters can appear in the scanf format string;they must match the same characters in the input.So we could read dates of the form mm/dd/yy with this scanf statement:
+    普通字符也能够出现在scanf的格式化串中;但是它们必须与输入中相同的字符串匹配.所以我们能够通过scanf语句读取形式如mm/dd/yy的时间数据.
+        int day,month,year;
+        scanf("%d%d%d",&month,&day,&year);
+    scanf ignores blanks and tabs in its format string.Furhtermore,it skips over white space(blank,tabs,newlines,etc.) as it looks for input values.To read input whose format is not fixed,
+    scanf忽略格式化字符串中空格符和制表符.更进一步,在读取输入值时,它跳过空白符和制表符(blank,tabs,newlines,etc).为了读取固定格式的输入,
+it is often best to read a line at a time,then pick it apart with sscanf.For example,suppose we want to read lines that might contain a date in either of the forms above.Then we could write
+通常最好是每次读取一整行,然后通过sscanf逐个读入.例如,假设我们想要读取可能包含上述一种形式表示的日期数据的行.那么可以这样写
+while(getline(line,sizeof(line)) > 0){
+    if(sscanf(line,"%d %s %d",&day,monthname,&year) == 3)
+        printf("valid:%s\n",line); /* 25 dec 1988 form */
+    else if(sscanf(line,"%d/%d/%d",&month,&day,&year)==3)
+        printf("valid:%s\n",line); /* mm/dd/yy form */
+    else
+        printf("invalid:%s\n",line);/* invalid form */
+}
+    Calls to scanf can be mixed with calls to other input functions.The next call to any input function will begin by reading the first character not read by scanf.
+    scanf函数可以和其他输入函数混合起来使用.紧跟在scanf函数调用之后的下一个输入函数的调用将从scanf没有读取的第一个字符处开始读取数据.
+    A final warning:the arguments to scanf and sscanf must be pointers.By far the most common error is writing
+    注意:scanf和sscanf的参数必须都是指针.最常见的错误是将输入语句写成
+        scanf("%d",n);
+instead of 
+        scanf("%d",&n);
+This error is not generally detected at complie time.
+编译程序在编译时一般检测不到这类错误.
+
