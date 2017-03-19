@@ -78,3 +78,136 @@ which converts its input to lower case:
 诸如头文件<stdio.h>中的getchar和putchar函数以及<ctype.h>中的tolower"函数"一般都为宏,从而避免了对每个字符都进行函数调用的开销.
 We will show how this is done in Secton 8.5.Regardless of how the <ctype.h> functions are implemented on a given machine,programs that use them are shielded from knowledge of the character set.
 我们将在8.5节介绍其实现方法.无论<ctype.h>中的函数在给定的机器上是如何实现的,使用这些程序都可以不必了解字符集的知识.
+
+Exercise 7-1.Write a program that converts upper case to lower or lower case to upper,depending on the name it is invoked with,as found in argv[0[.
+
+
+
+7.2 Formatted Output - Printf
+    The output function printf translates internal values to character.We have used printf informally in previous chapters.The description here convers most typical uses but is not complete;
+    输出函数printf用于将内部数值转换为字符.在前面的章节中,我们已经非正式的使用过printf函数.下面的描述包含了最常用的典型用法,但是不是全部的;
+for the full story,see Appendix B.
+在附录B中给出了完整的使用方法.
+        int printf(char *format,arg1,arg2,...)
+printf converts,formats,and prints its arguments on the standard output under control of the format.It returns the number of characters printed.
+printf函数在输出格式format的控制下,将其参数转换,格式化并在标准输出设备上打印出来.它的返回值为打印的字符数.
+    The format string contains two types of object:ordinary characters,which are copied to the output stream,
+    格式化字符串包含两个类型的对象:普通字符,将其值拷贝到输出流中.
+and conversion specifications,each of which causes conversion and printing of the next successive argument to printf.
+和转换规格说明,转换规格说明不拷贝到输出流中,每个说明控制printf中参数的转换和打印
+Each conversion specification begins with a % and ends with a conversion character.Between the % and the conversion character there may be,in order:
+每一个转换说明都由%引入,并且以一个转换字符结束.在%和转换字符之间可能有如下成分:
+A minus sign,which specifies left adjustment of the converted argument.(负号,指定转换参数按照左对齐的形式输出.)
+A number that specifies the minimum field width.The converted argument will be printed in a field at least this wide.If necessary it will be padded on the left(or right,if left adjustment is called for) to make up the field width.(数,指定最小字宽.被转换的参数将在不小于最小字段宽的宽度中打印出来.如果必要,字段左面(或右面,如果使用左对齐)多余的字符位置用空格填充以保证最小字段宽)
+A period,which separates the field width from the precision.(小数点,用于将字段宽和精度分开.)
+A number,the precision,that specifies the maximum number of characters to be printed from a string,or the number of digits after the decimal point of a floating point value,or the minimum number of digits for an integer.(数,精度,指定一个字符所要打印的最大字符数,或者一个浮点数小数点的位置,或一个整数最少输出的数字数目.)
+An h if the integer is to be printed as a short,or l (letter ell) if as a long.(字母h或l,字母h表示将整数按short类型打印,字母l表示将整数作为long类型打印.)
+Conversion characters are show in Table 7-1.If the character after the % is not a conversion specification,the behavior is underfined.
+表7-1列出了所有转换字符.如果%后面的字符不是一个转换规格说明字符,则该行为是未定义的.
+Table 7-1.BASIC PRINTF CONVERSIONS
+
+
+A width or precision may be specified as *,in which case the value is computed by converting the next argument(which must be an int).For example,to print at most max characters from a string s,
+在转换规格说明中,一个宽度或者精度可能用*代替,这时,宽度和精度的值通过转换下一个变量（必须为int型)来计算.例如,为了从字符串s中最多打印max个字符,
+        printf("%.*s",max,s);
+    Most of the format conversions have been illustrated in earlier chapters.One exception is precsion as it relates to strings.
+    在前面的章节描述了大多数的格式化转换.但还未介绍与字符串相关的精度.
+The following table shows the effect of a variety of specifications in printing "hello,wold"(12 characters).We have put colons around each field so you can see its extent.
+下面的表中展示了打印字符串"hello,world"(12个字符),我们在每个字段的两边加上冒号,这样能更清楚的看到宽度.
+:%s:             :hello, world:
+:%10s:         :hello, world:
+:%.10s:        :hello, wor:
+:%-10s:        :hello, world:
+:%.15s:        :hello, world:
+:%-15s:        :hello, world     :
+:%15.10s:     :     hello, wor:
+:%-15.10s:    :hello, wor     :
+A warning:printf uses its first argument to decide how many arguments follow and what their types are.
+注意:printf使用它的第一个参数来判断还有多少参数和它们的类型是什么.
+It will get confused,and you will get wrong answers,if there are not enough arguments or if they are the wrong type.You should also be aware of the difference between these two calls:
+如果printf从第二个参数起的参数少于第一个参数中指定的个数或它们的类型与第一个参数中指定的类型不同时,那么会得到错误的记过.请注意下面两个调用之间的不同:
+        printf(s);        /* FAILS if a contains % */
+        printf("%s",s) /* SAFE */
+    The function sprintf does the same conversions as printf does,but stores the output in a string:
+    函数sprinitf做同样的转换和printf所做一样,但是它把输出存在一个字符串中.
+        int sprintf(char *string,char *format,arg1,arg2,...)
+sprintf formats the arguments in arg1,arg2,etc.,according to format as before,but places the result in string instead of on the standard output;string must be big enougth to recevice the result.
+sprintf函数和之前printf函数一样,按照fortmat格式化参数序列,如arg1,arg2,等.但是它将结果存放在string而不是放在标准输出中;当然string必须足够大来接收结果.
+
+Exercise 7-2. Write a program that will print arbitrary input in a sensible way.As a minimum,it shoud print non-graphic characters in octal or hexadecimal according to local custom,and break long text lines.
+
+
+7.3 Variable-length Argument Lists
+    This section contains an implementation of a minimal version of printf,to show how to write a function that processes a variable-length argument list in a portable way.
+    本节包含一个简单版本的printf,来演示怎样编写一个处理可变长度的参数的函数.
+Since we are mainly interested in the argument processing,minprintf will process the format string and arguments but will call the real printf to do the format cnoversions.
+因为重点在参数的处理,minprintf将处理格式化字符串和参数表,格式化转换则通过调用函数printf来实现.
+    The proper declaration for printf is 
+    下面是printf的正确声明方式
+        int printf(char *fmt,..)
+where the declaration ... means that the number and types of these arguments may vary.The declaration ... can only appear at the end of an argument list.Our minprintf is declared as
+其中,省略号声明...代表参数表中参数的数量和类型可能会变化.省略号声明...只能出现在参数表的结尾处.我们的minprintf声明如下:
+        void minprintf(char *fmt,...) 
+since we will not return the character count that printf does.
+因为我们的minprintf不像printf那样返回实际输出的字符数.
+    The tricky bit is how minprintf walks along the argument list when the list doesn't even have a name.
+    编写minprintf的关键点在与怎么样处理甚至连名字都没有的变量列表.
+This standard header <stdarg.h> contains a set of macro definitions that define how to step through an argument list.
+这个标准头文件在<stdarg.h>中包含一组如何处理变量表的宏定义.
+The implementation of this header will vary from machine to machine,but the interface it presents is uniform.
+这个头文件的实现随着机器不同而不同,但是它所提供的接口是统一的.
+    The type va_list is used to declare a variable that will refer to each argument in turn;in minprintf,this variable is called ap,for "argument pointer." 
+    类型va_list用来声明一个依次引用每个变量的变量,在minprintf,这个变量叫做ap,表示"argument pointer."
+The macro va_start initializes ap to point to the first unnamed argument.It must be called once before ap is used.There must be at least one named argument;
+而宏va_start初始化ap指针指向第一个无名变量.在ap使用之前,这个宏必须被调用一次.变量表中必须有至少一个命令变量;
+the final named argument is used by va_start to get started.
+va_start根据最后一个命名变量的值来对ap进行初始化.
+    Each call of va_arg returns one argument and steps ap to the next;va_arg uses a type name to determine what type to return and how big a step to take.
+    每一次调用va_arg返回一个变量并且使ap指向下一个变量;va_arg使用一个类型名决定其返回哪种类型的对象及如何使ap指向下一个变量.
+Finally,va_end does whatever cleanup is neccessary.It must be called before the function returns.
+最终,va_end必须在函数返回之前被调用,完成一些必要的清除工作.
+    There properties from the basis of our simplified printf:
+    上面是一些属性,我们简单的printf的基础讨论:
+#include <stdarg.h>
+
+/* minprintf:minial printf with variable argument list */
+void minprintf(char *fmt,...)
+{
+	va_list ap;/* points to each unnamed arg in turn */
+	char *p,*sval;
+	int ival;
+	double dval;
+	va_start(ap,fmt); /* make ap point to 1st unnamed arg */
+	for(p = fmt;*p;p++)
+	{
+		if(*p!='%'){
+			putchar(*p);
+			continue;
+		}
+		switch(*++p)
+		{
+			case 'd':
+				ival = va_arg(ap,int);
+				printf("%d",ival);
+				break;
+			case 'f':
+				dval = va_arg(ap,double);
+				printf("%f",dval);
+				break;
+			case 's':
+				for(sval=va_arg(ap,char *);*sval;sval++)
+				{
+					putchar(*sval);
+				}
+				break;
+			default:
+				putchar(*p);
+				break;
+		}
+	}
+	va_end(ap); /* clean up when done */
+}
+
+Exercise 7-3. Revise minprintf to handle more of the other facilities of printf.
+
+
