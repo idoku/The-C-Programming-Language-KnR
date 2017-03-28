@@ -434,3 +434,75 @@ fclose is called automatically for each open file when a program terminates norm
 (You can close stdin and stdout if they are not needed.They can also be reassigned by the library function freopen.)
 (如果不再需要stdin和stdout你可以把它们关闭.它们也能通过freopen函数重新赋值.)
 
+
+7.6 Error Handling - Stderr and Exit
+    The treatment of error in cat is not ideal.The trouble is that if one of the files can't be accessed for some reason,the diagnostic is printed at the end of the concatenated output.
+    cat程序的错误处理部分并不完善.问题在于如果由于某种原因而造成其中一个文件不能被访问时,相应的诊断信息被打印到输出的末尾.
+That might be acceptable if the output is going to a screen,but not if it's going into a file or into another program via a pipeline.
+当该输出指向屏幕时这种处理尚可接受,但如果它指向一个文件或借助于管道而指向另一个程序的输入时则会出问题.
+    To handle this situation better,a second output stream,called stderr,is assigned to a program in the same way that stdin and stdout are.
+    为了处理这种情况,操作系统像提供stdin和stdout一样自动提供了另一个称为stderr的输出流.
+Output written on stderr normally appears on the screen even if the standard output is redirected.
+即使使用了重定向输出,stderr上的输出通常也会显示在屏幕上.
+    Let us revise cat to write its error messages on the standard error.
+    下面改写cat程序来写错误信息在标准错误上.
+
+#include <stdio.h>
+
+void filecopy(FILE *ifp,FILE *ofp);
+
+/* cat: concatenate files,version 2 */
+main(int argc,char *argv[])
+{
+	FILE *fp;
+	void filecopy(FILE *,FILE *);
+	char *prog = argv[0]; /* program name for error */
+	if(argc == 1) /* no args; copy standard input */
+		filecopy(stdin,stdout);
+	else
+		while(--argc>0){
+			if((fp = fopen(*++argv,"r")) == NULL){
+				fprintf(stderr,"%s:can't open %s\n",prog,*argv);
+				exit(1);
+			}else{
+				filecopy(fp,stdout);
+				fclose(fp);
+			}			
+		}
+	if(ferror(stdout)){
+		fprintf(stderr,"%s:error writing stdout\n",prog);
+	}
+	exit(0);
+}
+
+/* filecopy:copy file ifp to file ofp */
+void filecopy(FILE *ifp,FILE *ofp)
+{
+	int c;
+	while((c=getc(ifp))!=EOF)
+		putc(c,ofp);
+}
+    The program signals errors two ways.First,the diagnostic output produced by fprintf goes onto stderr,so it finds its way to the screen instead of disappearing down a pipelien or into an output file.
+    该程序通过两种方式报错,第一种,由fprintf产生的诊断信息输出到stderr上,因此诊断信息将会显示在屏幕上而不是消失在管道或一个输出文件上.
+We included the program name,from argv[0],in the message,so if this program is used with others,the source of an error is identified.
+诊断消息中包含argv[0]中的程序名,所以如果程序被用来和其他程序一起使用,可以识别错误的来源.
+    Scond,The program uses the standard library function exit,which terminates program execution when it is called.The argument of exit is available to whatever process called this one,
+    第二,程序使用标准的库函数exit,当它被调用时将终止调用程序的执行.任何调用exit的进程都可以得到它的变量.
+so the success or failure of the program can be tested by another program that uses this one as a sub-process.Conventionally,a return value of 0 signals that all is well;
+因此可通过另外一个将该程序作为子进程的程序来测试该程序是否成功的执行了.按惯例,0返回值表示一切正常;
+non-zero values usually signal abnormal situations.exit calls fclose for each open output file,to flush out any buffered output.
+非0的值通常表示出现了异常.exit为每个已经打开的输出文件调用相应的fclose函数,将任何已缓存的输出写到相应文件中.
+    Within main,return expr is equivalent to exit(expr).exit has the advantage that it can be called from other functions,and that calls to it can be found with a pattern-searching program like those in Chapter 5.
+    在主程序中,返回expr等价于exit(expr).exit有如下优点,它能够被其他函数调用,并且可以用诸如第五章中所描述的模式查找函数查找这些调用.
+    The function ferror returns non-zero if an error occurred on the stream fp.
+    如果流fp上发生错误,则函数ferror返回非0值.
+        int ferror(FILE *fp);
+Although output errors are rare,they do occur(for example,if a disk fills up),so a production program should check this as well.
+尽管输出错误我们很少碰到,但是它确实存在(例如,磁盘满了),所以商业程序也应该能检查这个错误.
+    The function feof(FILE *) is analogous to ferror;it returns non-zero if end of file has occurred on the specified file.
+    函数feof(FILE *)与ferror类似;它返回非0的值如果文件结尾发生错误.
+        int feof(FILE *fp);
+    We have generally not worried about exit status in our small illustrative programs,but any serious program should take care to return sensible,useful status values.
+    上面讨论的这个旨在说明问题的小程序中,不用担心出口返回的状态,但重要的程序都应该小心检查返回合理且有意义的数值. 
+
+
