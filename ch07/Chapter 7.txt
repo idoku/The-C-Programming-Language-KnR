@@ -506,3 +506,62 @@ Although output errors are rare,they do occur(for example,if a disk fills up),so
     上面讨论的这个旨在说明问题的小程序中,不用担心出口返回的状态,但重要的程序都应该小心检查返回合理且有意义的数值. 
 
 
+
+7.7 Line Input and Output
+    The standard library provides an input routine fgets that is similar to the getline function that we have used in earlier chapters:
+    标准库函数提供一个输入函数fgets,它和前面几章使用过的getline函数相似:
+        char *fgets(char *line,int maxline,FILE *fp);
+fgets reads the next input line(include the newline) from file fp into the character array line;at  most maxline-1 characters will be read.The resulting line is terminated with '\0'.Normally fgets returns line;
+fgets读取下一行输入(包括换行符)从文件fp中存入到字符数组line中;最多可读取maxline-1个字符.读取的结果'\0'结尾.通常fgets返回line,
+on end of file or error it return NULL.(Our getline returns the line length,which is a more useful value;zero means end of file.)
+在文件结尾或错误时它返回NULL.(我们的getline返回line的长度,一个更有用的值;0意味着文件结尾.)
+    For output,the function fputs writes a string(which need not contain a newline) to a file:
+    对于输出,函数fputs将一个字符串(不必包含换行符)写入一个文件中:
+        int fputs(char *line,FILE *fp);
+It returns EOF if an error occurs,and non-negative otherwise.
+当有错误出现时它返回EOF,否则返回0.
+    The library functions gets and puts are similar to fgets and fputs,but operate on stdin and stdout.Confusingly,gets deletes the terminal '\n',and puts adds it.
+    库函数gets和puts类似于fgets和fputs,但他们在在stdin和stdout上操作.不同的是,gets函数在读取字符串时将删除结尾的换行符'\n',而puts函数在所写出的字符串后还要增加换行符.
+    To show that there is nothing special about functions like fgets and fputs,here they are,copied from the standard library on our system:
+    为了展示诸如fgets和fputs这样的函数没什么特别的地方,我们将标准库中的代码复制如下:
+/* fgets: get at most n-1 chars,plus a null from iop */
+char *fgets(char *s,int n,FILE *iop)
+{
+	register int c;
+	register char *cs;
+	cs = s;
+	while(--n>0 && (c=getc(iop))!=EOF){
+		if((*cs++=c)=='\n')
+			break;
+	}
+	*cs = '\0';
+	return (c==EOF && cs==s)?NULL:s;	
+}
+
+/* fputs:put string s on file iop */
+int fputs(char *s,FILE *iop)
+{
+	int c;
+	while(c==*s++)
+		putc(c,iop);
+	return ferror(iop)?EOF:non-negative;
+}
+The standard specifies that ferror return non-zero for error;fputs returns EOF for error and a non-negative value otherwise.
+标准规定,ferror函数在遇到错误时返回非0值;而fputs函数在遇到错误时则返回EOF.否则返回一个非负整数值.
+    It is easy to implement our getline from fgets:
+    用fgets函数很容易实现getline函数:
+    /* getline:read a line,return length */
+    int getline(char *lien,int max)
+    {
+        if(fgets(line,max,stdin)==NULL)
+            return 0;
+        else
+            return strlen(line);
+        }
+
+Exercise 7-6. Write a program to compare two files,printing the first line where they differ.
+
+Exercise 7-7.Modify the pattern finding program of Chapter 5 to take its input from a set of named files or,if no files are named as arguments,from the standard input.Should the file name be printed when a matching line is found?
+
+Exercise 7-8.Write a program to print a set of files,starting each new one on a new page,with a title and a running page count for each file.
+
