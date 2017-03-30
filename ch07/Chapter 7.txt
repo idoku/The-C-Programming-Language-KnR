@@ -565,3 +565,108 @@ Exercise 7-7.Modify the pattern finding program of Chapter 5 to take its input f
 
 Exercise 7-8.Write a program to print a set of files,starting each new one on a new page,with a title and a running page count for each file.
 
+
+
+7.8 Miscellaneous Functions
+    The standard library provides a wide variety of functions.This section is a brief synopsis of the most useful.More details and many other functions can be found in Appendix B.
+    标准库函数提供许多功能各异的函数.本节做一个简要的描述对大多数有用的函数.更多的细节和更多的函数查看附录B.
+
+7.8.1 String Operations
+We have already mentioned the string functions strlen,strcpy,strcat,and strcmp,found in <sring.h>.In the following,s and t are char *'s,and c and n are ints.
+我们之前提到过字符串相关函数strlen,strcpy,strcat,和strcmp,它们都定义在头文件<string.h>中.在下面各函数中,s和t都是字符指针(类型为char*),而c和n都是int类型.
+strcat(s,t)         concatenate t to end of s(将t所指向的字符串连接到s所指向的字符串的末尾)
+strncat(s,t,n)     concatenate n characters fo t to end of s (将t指向的字符串中前n个字符连接到s指向的字符串的末尾)
+strcmp(s,t)        return negative,zero,or positive for s<t,s==t,or s>t (视s所指向的字符串小于,等于或大于t所指向的字符串而返回负整数,0或正整数.)
+strncmp(s,t,n)   same as strcmp but only in first n characters (除了前n个字符和strcmp一样)
+strcpy(s,t)         copy t to s (将t所指向的字符串复制到s所指向的位置)
+strncpy(s,t,n)     copy at most n characters of t to s (将t所指向的字符串中最多前n个字符赋值到s所指向的位置.)
+strlen(s)            return length of s (返回s所指向字符串的长度)
+strchr(s,c)         return pointer to first c in s,or NULL if not present (在s所指向字符串中查找c,若找到则返回指向它第一次出现的位置的指针,否则返回NULL)
+strrchar(s,c)      return pointer to last c in s,or NULL if not present (在s所指向的字符串中查找c,若找到则返回指向它最后一次出现的位置的指针,否则返回NULL)
+
+7.8.2 Character Class Testing and Conversion
+    Several functions from <ctype.h> perform character tests and conversions.In the following, c is an int that can be represented as an unsigned char,or EOF.The functions return int.
+    头文件<ctype.h>中一些函数用来字符测试和转换.下面的函数中,,c是一个可用于表示为一个无符号字符,或者EOF的整数.函数返回值类型为int.
+isalpha(c)        non-zero if c is alphabetic,0 if not (若c是一个字母,则返回一个非0值,否则返回0)
+isupper(c)        non-zero if c is upper case,0 if not (若c是一个大写字母,则返回一个非0值,否则返回0)
+islowwer(c)      non-zero if c is lower case,0 if not (若c是一个小写字母,则返回一个非0值,否则返回0)
+isdigit(c)          non-zero if c is digit,0 if not (若c是数字,则返回一个非0值,否则返回0)
+isalnum(c)       non-zero if isalpha(c) or isdigit(c),0 if not (若c是字母或者数字,则返回一个非0值,否则返回0)
+isspace(c)        non-zero if c is blank,tab,newline,return,formfeed,vertical tab (若c是空格,制表符,换行符,回车符和纵向制表符,则返回一个非0值,否则返回0)
+toupper(c)         return c converted to upper case (返回c的大写形式)
+tolower(c)        return c converted to lower case (返回c的小写形式)
+
+7.8.3 Ungetc
+    The standard library provides a rather restricted version of  the function ungetch that we wrote in Chapter 4;it is called ungetc.
+    标准库函数提供一个成为ungetc的函数,它是第四章我们编写过的函数ungetch的一个在功能上有较多限制的变种.
+        int ungetc(int c,FILE *fp);
+pushes the character c back onto file fp,and returns either c,or EOF for an error.Only one character of pushback is guaranteed per file.ungetc may be used with any of the input functions like scanf,getc,or getchar.
+函数将字符c写回到文件fp中,如果执行成功,返回c,或返回EOF如果出现错误.每个文件只能接收一个写回字符.ungetc能够和任何输入函数如scanf,getc,或getchar等一起使用.
+
+7.8.4 Command Execution
+    The function system(char *s) executes the command contained in the character string s,then resumes execution of the current program.The contents of s depend strongly on the local operating system.
+    函数system(char *s)执行包含在字符串s中的命令,然后执行当前程序命令.字符串s的内容强依赖当前的操作系统.
+As a trivial example,On UNIX systems,the statement
+以UNIX操作系统上的一个小例子来看,语句    
+    system("date");
+causes the program date to be run;it prints the date and time of day on the standard output.system returns a system-dependent integer status from the command executed.
+导致程序date运行;它在标准输出上打印当前日期和时间.system返回一个来自于所执行的命令且依赖于系统的整数状态.
+In the UNIX system,the status return is the value returned by exit.
+在UNIX系统中,这个状态返回值是exit所返回的数值.
+
+7.8.5 Storage Management
+    The functions malloc and calloc obtain blocks of memory dynamically.
+    函数malloc和calloc用来动态的分配内存块.
+        void *malloc(size_t n);
+returns a pointer to n bytes of uninitialized storage,or NULL if the request cannot be satisfied.
+在分配成功时,返回一个指针指向n字节大小的未使用空间或者返回NULL如果请求不成功.
+    void *calloc(size_t n,size_t size);
+returns a pointer to enough space for an array of n objects of the specified size,or NULL if the request cannot be satisfied.The storage is initialized to zero.
+在分配成功时,返回一个指向足够容纳n个指定大小的的对象组成的的数组的存储空间的指针,否则返回NULL如果请求不能成功.存储空间的每一个字节均被初始化为0.
+    The pointer returned by malloc or calloc has the proper alignment for the object in question,but it must be cast into the appropriate type,as in 
+    指针通过malloc或calloc返回的指针能自动地根据所分配对象的类型进行适当的对齐调整,但是它必须通过强制转换到适当的类型,如下
+        int *ip;
+        ip = (int *)calloc(n,sizeof(int));
+    free(p) frees the space pointed to by p,where p was originally obtained by a call to malloc or calloc.There are no restrictions on the order in which space is freed,
+    free(p)函数释放p所指向的存储空间,其中p是此前通过调用malloc或calloc而得到的指针.存储空间的释放顺序没有什么限制.
+but it is a ghastly error to free something not obtained by calling calloc or malloc.
+但是释放一些不是由调用calloc或malloc来得到的指针所指向的存储空间是一个可怕的错误,.
+    It is also an error to use something after it has been freed.A typical but incorrect piece of code is this loop that frees items from a list:
+    使用一些已经释放的指针同样是错误的.下面所示是一个典型的但不正确的代码段,由一个用于释放列表中数据项所占的存储空间的循环语句组成:
+        for(p = head; p != NULL; p = p->next) /* WRONG */
+            free(p);
+The right way is to save whatever is needed before freeing:
+正确的处理方法是在释放数据项之前将必要的信息先保存起来.
+        for(p = head; p != NULL; p = q){
+            q = p->next;
+            free(p);
+        }
+    Section 8.7 shows the implementation of a storage allocator like malloc,in which allocated blocks may be freed in any order.
+    第8.7节展示实现存储分配像malloc那样,这个程序分配的存储块可以任意顺序释放.
+
+7.8.6 Mathematical Functions
+    There are more than twenty mathematical functions declared in <math.h>;here are some of the more frequently used.Each takes one or two double arguments and returns a double.
+    在<math.h>中有超过20个数学函数定义,下面是一些常用的函数.每一个都使用一个或两个双精度浮点型参数并返回一个双精度浮点数.
+sin(x)        sine of x,x in radians (x的正玄函数,其中x用弧度表示)
+cos(x)        cosine of x,x in radians (x的余玄函数,其中x用弧度表示)
+atan2(y,x)   arctangent of y/x,in radians (y/x的反正切函数,该函数值用弧度表示)
+exp(x)        exponential function ex. (指数函数e)
+log(x)        natural (base e) logarithm of x(x>0) (x的自然对数(以e为底)函数)
+log10(x)    common (base 10) logarithm of x(x>0) (x的常用对数(以10为底)函数)
+pow(x,y)    xy
+sqrt(x)        square root of x(x>=0) (x的平方根函数)
+fabs(x)        absolute value of x (x的绝对值函数)
+
+7.8.7 Random Number Generation
+    The function rand() computes a sequence of pseudo-random integers in the range zero to RAND_MAX,which is defined in <stdlib.h>.
+    函数rand()计算伪随机序列介于0头RAND_MAX之间,其中RAND_MAX定义在<stdlib.h>中.
+One way to produce random floating-point numbers greater than or equal to zero but less than one is 
+一个产生随机浮点数,其大于等于0并且小于1的方法,
+    #define frand() ((double)rand()/(RAND_MAX+1.0))
+(If your library already provides a function for floating-point random numbers,it is likely to have better statistical properties than this one.)
+(如果你的库函数提供一个函数来得到浮点随机数函数,那么可能具有更好的统计学属性比上面这个.)
+    The function srand(unsigned) sets the seed for rand.The protable implementation of rand and srand suggested by the standard appears in Section 2.7.
+    函数srand(unsigned)设置一个随机种子.实现rand和srand在2.7节给出了可移植性的建议.
+
+Exercies 7-9 Functions like isupper can be implemented to save space or to save time.Explore both possibilities.
+
