@@ -1,0 +1,1000 @@
+CHAPTER 8:The UNIX System Interface
+    The UNIX operating system provides its services through a set of system calls,which are in effect functions within the operating system that may be called by user programs.
+    UNIX操作系统提供服务通过一组系统调用,这些调用都是有效的函数在操作系统中,可以被用户程序调用.
+This chapter describes how to use some of the most important system calls from C programs.If you use UNIX,this should be directly helpful,for it is sometimes necessary to employ system calls for maximum efficiency,
+本章描述怎么样使用一些重要的系统调用在C程序中.如果你使用UNIX系统,这真的很有用,有些情况下有必要执行系统调用已达到最大化效益,
+or to access some facility that is not in the library.Even if you use C on a different operating system,however,you should be able to gleaninsight into C programming from studying these examples;
+或者访问一些标准库没有的功能组件.甚至你使用C在不同的操作系统,你能够更深入的了解C程序,通过学习这些例子;
+although details vary,similar code will be cound on any system.Since the ANSI C library is in many cases modeled on UNIX facilities,this code may help your understanding of the library as well.
+尽管一些细节不同,但是在不同系统上的代码是类似的.由于ANSI C标准库建立在UNIX系统上,这些代码也能够更好的帮助理解这个标准库.
+    The chapter is divided into three major parts:input/output,file system,and storage allocation.The first two parts assume a modest familiarity with the external characteristics of UNIX system.
+    本章被分为3个主要部分:input/output,file system,和storage allocation.第一个部分和第二部分要求对UNIX的外部特性有所了解.
+    Chapter 7 was concerned with an input/output interface that is uniform across operating systems.
+    第7章中介绍过input/output接口,在任何操作系统上是统一的.
+On any particular system the routines of the standard library have to be written in terms of the facilities provided by the host system.In the next few sections we will describe the UNIX system calls for input and output,
+在一个具体的操作系统上,标准库函数的程序必须通过这个系统提供的功能来完成.在后面的一些章节中,我们将讨论UNIX系统调用输入和输出,
+and show how parts of the standard library can be implemented with them.
+和展示如何用它们来实现标准库.
+
+8.1 File Descriptors
+    In the UNIX operating system,all input and output is done by reading or writing files,because all peripheral devices,even keyboard and screen,are files in the file system.
+    在UNIX操作系统中,所有的输入和输出通过读取和写入文件,因为所有的外部设备,甚至键盘和显示器,所有文件都在文件系统中.
+This means that a single homegeneous interface handles all communication between a program and peripheral devices.
+这意味着一个单一的界面接口处理所有的通讯在程序和设备之间.
+    In the most general case,before you read or write a file,you must inform the system of your intent to do so,a process called opening the file.
+    在通常情况下,在你读取和写入文件之前,你必须先通知系统,这个过程叫做打开文件.
+If you are going to write on a file it may also be neccessary to create it or to discard its previous contents.The system checks your right to do so(Does the file exist?Do you have permission to access it?),
+如果你要写入文件,可能需要先创建文件否则将丢弃之前的内容.系统检查你的权限是否能做(是否文件存在?是否你拥有访问它的权限?),
+and if all is well,returns to the program a small non-negative integer called a file descriptor.Whenever input or output is to be done on the file,the file descriptor is used instead of the name to identify the file.
+如果都是可以的,返回程序一个小的非负整数叫做文件描述符.任何时候输入或输出作用于文件,文件描述符都是用来代替文件名来标识文件.
+(A file descriptor is analogous to the file pointer used by the standard library,or to the file handle of MS-DOS.)All information about an open file is maintained by the system;the user program refers to the file only by the file descriptor.
+(一个文件描述符类似于标准库中的指针或者类似于MS-DOS中的文件句柄.)所有信息关于打开文件维护都是通过系统;用户程序引用文件只能通过文件描述符.
+    Since input and output involving keyboard and screen is so common,special arrangements exist to make this convenient.When the command interpreter(the "shell") runs a program,three files are open,
+    因为输入和输出调用键盘和屏幕通常,特别的存在使得这个变得容易.当命令解释程序("shell")运行一个程序,三个文件被打开,
+with file descriptors 0,1,and 2,called the standard input,the standard output,and the standard error.If a program reads 0 and writes 1 and 2,it can do input and output without worrying about opening files.
+通过文件描述0,1和2,叫做标准输入,标准输出和标准错误.如果程序读取0而写入1和2,那么它可以进行任何输入和输出而不必先打开文件.
+    The user of a program can redirect I/O to and from files with < and >:
+    用户程序能够重定向I/O通过<和>.
+        prog <infile> outfile
+In this case,the shell changes the default assignments for file descriptors 0 and 1 to the named files.Normally file descriptor 2 remains attached to the screen,so error messages can go there.
+在这个情况下,shell改变默认的赋值给文件描述符0和1给文件命名.通常文件描述2仍与显示器有关,所以错误信息能够输出到显示器.
+Similar observations hold for input or output associated with a pipe.In all cases,the file assignments are changed by the shell,not by the program.
+类似的特性保持输入或输出关联管道.所有的情况下,文件赋值是的改变是通过shell而不是程序来完成的.
+The program does not know where its input comes from nor where its output goes,so long as it uses file 0 for input and 1 and 2 for output.
+程序不知道输入从哪里来,输出到哪里,只要它使用0作为输入,使用1和2作为输出.
+
+8.2 Low level I/O --- Read and Write
+    Input and output uses the read and write system calls,which are accessed from C programs through two functions called read and write.For both,the first argument is a file descriptor.
+    输入和输出使用read和write的系统调用,在C程序中可以通过函数read和write实现.这两个,第一个参数是文件描述符.
+The second argument is a character array in your program where the data is to go to or come from.The third argument is the number of bytes to be transferred.
+第二个参数是字符数组在程序中数据存放和获取的地方.第三个参数是所要传输的字节数.
+    int n_read = read(int fd,char *buf,int n);
+    int n_written = write(int fd,char *buf,int n);
+Each call returns a count of the number of bytes transferred.On reading,the number of bytes returned may be less than the number requested.A return value of zero bytes implies end of file,
+每个调用返回一个字节的统计数传输的.读取,字节数返回可能少于请求的数量.返回的值为0则表述已经到了文件末尾,
+and -1 indicates an error of some sort.For writing,the return value is the number of bytes writeen;an error has occurred if this isn't equal to the number requested.
+而-1指示某个错误发生.在写入时,返回的写入的字节数;一个错误发生如果这个值与请求的值不相等.
+    Any number of bytes can be read or written in one call.The most common values are 1,which means one character at a ime ("unbuffered"),
+    任何字节数量都可以被读取或写入在一次调用中.最通常的值是1,意味着一个字符一次("无缓存").
+and a number like 1024 or 4096 that corresponds to a physical block size on a peripheral device.Larger sizes will be more efficient because fewer system calls will be made.
+而数字像1024或4096是与外部设备的块大小相同的值.更大的值将更有效率因为更少的系统调用被执行.
+    Putting these facts together,we can write a simple program to copy its input to its output,the equivalent of the file copying program written for Chapter 1.
+    通过这些讨论,我们能够编写一个简单的程序来拷贝输入到输出,等价于copying程序在第一章编写的.
+This program will copy anything to anything,since the input and output can be redirected to any file or device.
+这个程序会拷贝任意输入到任意输出,因为输入和输出能够重定向到任何设备上.
+#include "syscalls.h"
+
+main() /* copy input to output */
+{
+	char buf[BUFSIZ];
+	int n;
+	while((n = read(0,buf,BUFSIZ))>0)
+		write(1,buf,n);
+	return 0;
+}
+    
+    We have collected function prototypes for the system calls into a file called syscalls.h so we can include it in the programs of this chapter.This name is not standard,however.
+    我们收集函数原型给系统调用的都放在文件叫做syscalls.h中,所以我们能够包含这个到程序中.但这个名字不是标准的.
+    The parameter BUFSIZ is also defined in syscalls.h;its value is a good size for the local system.If the file size is not a multiple of BUFSIZ,some read will return a smaller number of bytes to be written by write;
+    参数BUFSIZ同样定义在syscalls.h中;这个值是一个对当前系统很合适的大小.如果文件大小不是BUFSIZ的倍数,那么对read的某一次调用将返回一个较小的字节数,传递个write调用;
+the next call to read after that will return zero.
+下一个read调用将返回0.
+    It is instructive to see how read and write can be used to construct higher-level routines like getchar,putchar,etc.For example,
+    为了弄清楚read和write能够用来构建更高层次的像getchar,putchar等,举个例子,
+here is a version of getchar that does unbuffered input,by reading the standard input one character at a time.
+下面是一个bane不能的getchar无缓存输入,通过读取标准输入每次一个字符.
+   #include "syscalls.h"
+
+/* getchar: unbuffered single character input */
+int getchar(void)
+{
+	char c;
+	return (read(0,&c,1)==1)?(unsigned char)c:EOF;
+}
+
+c must be a char,because read needs a character pointer.Casting c to unsigned char in the return statement eliminates any problem of sign extension.
+c必须是字符,因为read需要一个字符指针,转换c为无符号的字符在返回语句中消除符号扩展的问题.
+    The second version of getchar does input in big chunks,and hands out the characters one at a time.
+    第二个版本的getchar输入一个更大的块,并且每次处理一个字符.
+#include "syscalls.h"
+
+/* getchar: simple buffered version */
+int getchar(void)
+{
+	static char buf[BUFSIZ];
+	static char *bufp = buf;
+	static int n = 0;
+	if(n==0){ /* buffer is empty */
+		n = read(0,buf,sizeof(buf));
+		bufp = buf;
+	}
+	return (--n>0)?(unsigned char)*bufp++:EOF;
+}
+
+If these versions of getchar were to be complied with <stdio.h> includeed,it would be necessary to #undef the name getchar in case it is implemented as a macro.
+如果这个版本的getchar要通过编译在<stdio.h>包含的情况下,需要通过#undef预处理指令来取消getchar的宏名称定义.
+
+8.4 Open,Creat,Close,Unlink
+    Other than the default standard input,output and error,you must explicitly open file in order to read or write them.There are two system calls for this,open and create.
+    除了缺省的标准输入,输出和错误,你必须在读取或写入它们时显示的打开文件.这里有两个系统调用来做这个,open和create.
+    open is rather like the fopen discussed in Chapter 7,except that instead of returning a file pointer,it returns a file descriptor,which is just an int.open returns -1 if any error occurs.
+    open类似于fopen之前在第七章讨论过,除了它返回一个文件指针,而open返回的是一个文件描述符,仅仅是一个int型.open返回-1当有错误发生时.
+
+#include <fcnt1.h>
+int fd;
+int open(char *name,int flags,int perms);
+fd = open(name,flags,parms);
+
+As with fopen,the name argument is a character string containing the filename.The second argument,flags,is an int that specifies how the file is to be opened;the main values are
+与fopen一样,参数名称是字符串包含文件名.第二个参数,标志,是一个整形,这个整形指定文件怎样打开;主程序值如下
+
+O_RODNLY        open for reading only
+O_WRONLY        open for writing only
+O_RDWR            open for both reading and writing
+
+These constants are defined in <fcnt1.h> on System V UNIX systems,and in <sys/file.h> on Berkeley(BSD) versions.
+这些常量都定义在<fcnt1.h>在UNIX系统V版本中,而定义在<sys/file.h>在伯克利(BSD)版本中.
+    To open an existing file for reading::
+    为了打开一个存在的文件来读取:
+fd = open(name,O_RDONLY,0);
+The perms argument is always zero for the uses of open that we will discuss.
+perms参数道德值永远是0来打开文件,在我们的讨论中.
+    It is an error to try to open a file that does not exist.The system call creat is provided to create new files,or to re-write old ones.
+    出现错误,打开不存在的文件.系统调用create来提供创建新的文件,或者重写老的文件.
+        int creat(char *name,int perms);
+        fd = creat(name,perms);
+returns a file descriptor if it was able to create the file,and -1 if not.If the file already exists,creat will truncate it to zero length,thereby discarding its previous contents;it is not an error to creat a file that already exists.
+返回一个文件说明符如果能够创建文件,而-1表示没有创建成功.如果文件已经存在,creat将把文件截断为0的长度,从而舍弃之前的内容;用creat创建一个已存在的文件将会产生错误.
+    If the file does not already exist,creat creates it with the permissions specified by the perms arguemnt.In the UNIX file system,there are nine bits of permission information associated with a file that control read,
+    如果文件不存在,creat创建它通过参数perms指定的权限来创建文件.在UNIX系统中,有9个位的字段来关联权限信息关于文件的控制读取,写入和执行访问,
+write and execute access for the owner of the file,for the owner's group,and for all others.Thus a three-digit octal number is convenient for specifying the permissions.
+对于文件所有者.所有组和其他成员.这样一个3个位的八进制数来说明不同的权限.
+For example,0755 specifies read,write and execute permission for the owner,and read and execute permission for the group and everyone else.
+例如,0755指定读取,写入和执行权限给所有者,以及读取和执行的权限给组和其他人.
+    To illustrate,here is a simplified version of the UNIX program cp,which copies one file to another.Our version copies only one file,it does not permit the second argument to be a directory,
+    为了描述权限,这里有一个简单版本的UNIX程序cp,用来拷贝一个文件到另一个.我们的版本拷贝仅仅一个文件,它不允许第二个参数目录的使用.
+and it invents permissions instead of copying them.
+并且目标文件的权限不是通过复制得到,而是自定义.
+#include <stdio.h>
+#include <fcnt1.h>
+#include "syscalls.h"
+#define PERMS 0666  /* RW for owwner,group,other */
+
+void error(char *,...);
+
+/* co:copy f1 to f2 */
+main(int argc,char *argv[])
+{
+	int f1,f2,n;
+	char buf[BUFSIZ];
+	if(argc!=3)
+		error("usage:cp from to");
+	if((f1 = open(argv[1],O_RDONLY,0))==-1)
+		error("cp:can't open %s",argv[1]);
+	if((f2 = creat(argv[2],PERMS))==-1)
+		error("cp:can't create %s,mode %03o",argv[2],PERMS);
+	while((n = read(f1,buf,BUFSIZ))>0)
+		if(write(f2,buf,n)!=n)
+			error("cp:write error on file %s",argv[2]);
+	return 0;
+}
+
+This program creates the ouput file with fixed permissions of 0666.With the stat system call,described in Section 8.6,we can determine the mode of an existing file and thus give the same mode to the copy.
+这个程序创建输出文件通过固定权限0666.通过stat的系统调用,我们在8.6节将要讨论,我们能够获得一个存在文件的模式,并将其相同的模式拷贝.
+    Notice that the function error is called with variable argument lists much like printf.The implementation of error illustrates how to use another member fo the printf family.
+    注意函数error调用变量列表类似于printf.实现error的描述怎么样使用printf函数家族的另一个成员.
+The standard library function vprintf is like printf except that the variable argument list is replaced by a single argument that has been initialized by calling the va_start macro.Similarly,vfprintf and vsprintf match fprintf and sprintf.
+标准库函数vprintf类似于printf除了单一变量来代替列表变量,且此变量通过调用va_start宏来初始化.类似的,vprintf和vsprintf分别与fprintf和sprintf匹配.
+#include <stdio.h>
+#include <stdarg.h>
+
+/* error:print an error messsage and die */
+void error(char *fmt,...)
+{
+	va_list args;
+	va_start(args,fmt);
+	fprintf(stderr,"error:");
+	vfprintf(stderr,fmt,args);
+	fprintf(stderr,"\n");
+	va_end(args);
+	exit(1);
+}
+    
+    There is a limit (often about 20) on the number of files that a program may have open simulatneously.Accordingly,any program that intends to process many filees must be prepared to re-use file descriptors.
+    这里有一个限制(通常是20)在程序中文件的数量能够同时打开的.相应的,任何程序能够处理许多文件,必须重用文件描述符.
+The function close(int fd) breaks the connection between a file descriptor and an open file,and frees the file descriptor for use with some other file;
+函数close(int fd)断开联系在文件描述和已打开文件之间,并且释放文件描述给其他文件使用;
+it correspeonds to fclose in the standard library except that there is no buffer to flush.Termination of a program via exit or return from the main program closes all open files.
+对应的fclos在标准库中,除了不要刷新缓存区.程序中断通过exit或return从主程序中,将关闭所有打开的文件.
+    The function unlink(char *name) removes the file name from the file system.It corresponds to the standard library function remove.       
+   函数unlink(char *name0移除文件名从文件系统中,对应的标准库函数为remove.
+
+Exercise 8-1. Rewrite the program cat from Chapter 7 using read,write,open and close instead of their standard library equivalents.Perform experiments to determine the relative speeds of the two versions.
+
+
+8.4 Random Access - Lseek
+    Input and output are normally sequential:each read or write takes place at a position in the file right after the previous one.When necessary,however,a file can be read or written in any arbitrary order.
+    输入和输出通常都是顺序的:每一个读取或写入的位置紧跟在前一次操作之后.当有必要时,一个文件可以读取或写入使用任意的次序.
+The system call lseek provides a way to move around in a file without reading or writing any data:
+系统调用lseek提供一种方式移动文件而不读取或写入任何数据:
+        long lseek(int fd,long offset,int origin);
+sets the current position in the file whose descriptor is fd to offset,which is taken relative to the location specified by origin.Subsequent reading or writing will begin at that position.
+设置当前位置在文件中,其文件描述符fd为offset,移动位置相对于origin而定.随后读写操作从此位置开始.
+origin can be 0,1,or 2 to specify that offset is to be measured from the beginning,from the current position,or from the end of the file respectively.
+origin可以是0,1,或2指定,分别用于指定offset从文件开始,从当前位置开始,或从文件结束处开始.
+For example,to append to a file(the redirection>>in the UNIX shell,or "a" for fopen),seek to the end before writing:
+例如,为了追加给文件(重定向符>>在UNIX系统的shell中,或使用"a"给fopen函数调用).seek到文件末尾在写入之前:
+        lseek(fd,0L,2);
+To get back to the beginning("rewind")
+为了返回开始处("反卷")
+        lseek(fd,0L,0);
+Notice the 0L argument;it could also be written as (long) 0 or just as 0 if lseek is properly declared.
+请注意0L参数;它同样可以写成(long)0或者0如果lseek定义正确.
+    With lseek,it is possible to treat file to treat files more or less like large arrays,at the price of slower access.For example,the following function reads any nunber of bytes from any arbitrary place in a file.
+    在使用lseek,
+It retruns the number read,or -1 on error.
+#include "syscalls.h"
+/* get: read n bytes from position pos */
+int get(int fd,long pos,char *buf,int n)
+{
+    if(lseek(fd,pos,0)>=0) /* get to post */
+        return read(fd,buf,n);
+    else
+        return -1;
+}
+The return value from lseek is a long that gives the new position in the file,or -1 if an error occurs.
+返回值从lseek得到一个long类型的值,此值说明了文件的新位置,或者-1如果错误反生.
+The standard library function fseek is similar to lseek exept tht the first argument is a FILE * and the return is non-zero if an error occurred.
+标准库函数fseek与系统调用seek类似,区别在于前者第一个变量是FILE*类型,且当发生错误时返回非0的值.
+
+8.5 Example - An Implementation of Fopen and Getc
+    Let us illustrate how some of these piees fit together by showing an implementation of the standard library routiines fopen and getc.
+    让我们描述一个例子来说明如何把这些系统调用放在一起使用.这个例子是标准库函数fopen和getc.
+    Recall that files in the standard library are described by file pointers rather than file descriptors.A file pointer is a pointer to a structure that contains several pieces of information about the file:a pointer to a buffer,
+    回顾文件在标准库都是描述通过文件指针而不是文件说明符.一个文件指针是一个指针指向结构,这个结构包含信息片段关于文件的:一个指针指向缓存区间,
+so the file can be read in large chunks;a count of the number of characters left in the buffer;a pointer to the next character position in the buffer;the file desripotor;and flags desribing read/write mode,error status,etc.
+所以文件能够读取大的文件块;一个计数器记录缓冲区中剩余的字符;一个指针指向下一个字符的位置在缓冲区中;文件描述符;和标识描述read/write模式,错误状态等.
+    The data structure that describes a file is contained in <stdio.h>,which must be include(by #include) in any souce file that uses routines from the standard input/output library.It is also include by functions in that library.
+    数据结构描述文件包含在<stdio.h>中,必须通过包含(通过#include)在任何源文件中,使用程序从标准输入/输出库.此文件也被库中其他函数包含.
+In the following excerpt from a typical <stdio.h>,names that are intended for use only by functions of the library begin with an underscore so they are less likely to collide with names in a user's program.
+下面的代码摘自一个典型的<stdio.h>,名字可能仅仅会被函数使用在标准库中,以下划线开始的.所以它们一般不会与用户程序的名称产生冲突.
+This convention is used by all standard library routines.
+这种命名习惯也适用于其他标准库函数.
+
+#define NULL	0
+#define EOF		(-1)
+#define BUFSIZ	1024
+#define OPEN_MAX 20	/* max #files open at once */
+
+typedef struct _iobuf{
+	int cnt;	/* characters left */
+	char *ptr;	/* next charater position */
+	char *base; /* location of buffer */
+	int flag;	/* mode of file access */
+	int fd;		/* file descriptor */
+} FILE;
+extern FILE _iob[OPEN_MAX];
+
+#define stdin	(&_iob[0]);
+#define stdout	(&_iob[1]);
+#define stderr	(&_iob[2]);
+
+enum _flags{
+	_READ =  01,	/* file open for reading */
+	_WRITE = 02,	/* file open for writing */
+	_UNBUF = 04,	/* file is unbuffered */
+	_EOF   = 010,	/* EOF has occurred on this file */
+	_ERR   = 020	/* error occurred on this file */
+};
+
+int _fillbuf(FILE *);
+int _flushuf(int,FILE*);
+
+#define feof(p)		(((p)->flag & _EOF)!=0)
+#define ferror(p)	(((p)->flag & _ERR)!=0)
+#define fileno(p)	((p)->fd)
+
+#define getc(p)		(--(p)->cnt>=0 \
+					? (unsigned char)*(p)->ptr++:_fillbuf(p))
+#define putc(x,p)	(--(p)->cnt>=0 \
+					? *(p)->ptr++=(x):_flushbuf((x),p))
+					
+#define getchar()	getc(stdin)
+#define putchar() 	putc((x),stdout)
+
+The getc macro normally decrements the count,advances the pointer,and returns the character.(Recall that a long #define is continued with a backslash.) If the count goes negative,
+getc宏通常将计算器减一,推进指针到下一个位置,然后返回字符.(回忆下一个长的#define继续通过一个反斜杠.)如果计数变为负的,
+however,getc calls the function _fillbuf to replenish the buffer,re-initialize the structure contents,and return a character.The characters are returned unsigned,which ensures that all characters will be positive.
+getc调用函数_fillbuf来填充缓冲区,重新初始化结构内容,并返回一个字符.字符返回都是无符号的,确保所有的字符都是正数.
+    Although we will not discuss any details,we have included the definition of putc to show that it operates in much the same way as getc,calling a function _flushbuf when its buffer is full.
+    尽管我们没有讨论任何细节,我们包含了putc的定义来展示它的操作与getc函数非常相似,调用函数_flushbuf当缓冲区满的时候.
+We have also included macros for accessing the error and end-of-file status and the file descriptor.
+我们同样包含了宏来访问错误和文件末尾标志以及文件描述符.
+    The function fopen can now be written.Most of fopen is concerned with getting the file opened and positioned at the right place,and setting the flag bits to indicate the proper state.
+    函数fopen现在能够编写了.大多数fopen是用来打开文件和文件定位,和设置文件标志位来指示文件状态.
+fopen does not allocate any buffer space;this is done by _fillbuf when the file is first read.
+fopen并没有分配任何缓冲区空间;它由函数_fillbuf决定当文件第一次读取时.
+        
+#include <fcnt1.h>
+#include "syscalls.h"
+
+#define PERMS 0666 /* RW for owner,group,others */
+
+/* fopen:open file,return file ptr */
+FILE *fopen(char *name,char *mode)
+{
+	int fd;
+	FILE *fp;
+	
+	if(*mode != 'r' && *mode != 'w' && *mode != 'a')
+		return NULL;
+	for(fp = _iob;fp < _iob + OPEN_MAX;fp++)
+		if((fp->flag & (_READ|_WRITE))==0)
+			break; /* found free slot */
+	if(fp>=_iob+OPEN_MAX)
+		return NULL;
+	if(*mode == 'w')
+		fd = creat(name,PERMS);
+	else if(*mode == 'a'){
+		if((fd = open(name,O_WRONLY,0))==-1)
+			fd = creat(name,PERMS);
+		lseek(fd,0L,2);
+	}else
+		fd = open(name,O_RDONLY,0);
+	if(fd==-1)
+		return NULL;
+	fp->fd = fd;
+	fp->cnt = 0;
+	fp->base = NULL;
+	fp->flag = (*mode=='r')?_READ:_WRITE;
+	return fp;
+}
+
+This version of fopen does not handle all of the access mode possibilities of the standard,though adding them would not take much code.In particular,
+这个版本的fopen函数没有处理所有的访问模式及标准的模式,但将这些添加进去不需要多少代码.尤其,
+our fopen does not recognize the "b" that signals binary access,since that is meaningless on UNIX systems,nor the "+" that permits both reading and writing.
+我们的fopen没有识别"b"这个二进制访问,因为在UNIX系统中没有定义这个方法,同时也没有"+",同时进行读取和写入的标识.
+    The first call to getc for a partiular file finds a count of zero,which forces a call of _fillbuf.If _fillbuf finds that the file is not open for reading,it returns EOF immediately.Otherwise,
+    第一个调用getc来给具体的文件时会发现计数值为0,从而需要调用一次_fillbuf函数.如果_fillbuf发现文件不是已读取方式打开,它将返回EOF立即.否则,
+it tries to allocate a buffer(if reading is to be buffered).
+它尝试分配缓存区(如果读取是以缓存方式).
+    Once the buffer is established,_fillbuf calls read to fill it,sets the count and pointers,and returns the character at the beginning of the buffer.Subsequent calls to _fillbuf will find a buffer alloated.
+    一旦缓存区建立._fillbuf调用读取来填充它,设置计数器和指针,并且返回字符在缓存区开始的地方.随后调用_fillbuf将找到一个缓存区分配的.
+#include "syscalls.h"
+
+/* _fillbuf: allocate and fill input buffer */
+int _fillbuf(FILE *fp)
+{
+	int bufsize;
+	if((fp->flag&(_READ|_EOF|_ERR))!=_READ)
+		return EOF;
+	bufsize = (fp->flag&_UNBUF)?1:BUSIZ;
+	if(fp->base==NULL)
+		if((fp->base= (char *)malloc(bufsize))==NULL)
+			return EOF;
+	fp->ptr = fp->base;
+	fp->cnt = read(fp->fd,fp->ptr,bufsize);
+	if(--fp->cnt < 0){
+		if(fp->cnt ==-1)
+			fp->flag |= _EOF;
+		else
+			fp->flag |= _ERR;
+		return EOF;
+	}
+	return (unsigned char)*fp->ptr++;
+}
+ The only remaining loose end is how everything gets started.The array _iob must be defined an initialized for stdin,stdout and stderr;
+ 唯一剩下的事情是怎样让程序运行.数组_iob必须定义初始化对于stdin,stdout和stderr.
+    FILE _iob[OPEN_MAX] = {
+        { 0, (char *)0, (char *)0, _READ, 0},
+        { 0, (char *)0, (char *)0, _WRITE, 1},
+        { 0, (char *)0, (char *)0, _WRITE | _UNBUF, 2}
+    }
+The initialization of the flag part of the structure shows that stdin is to be read,stdout is to be written,and stderr is to be written unbuffered.
+初始化的标志部分的结构是展示要对stdin做读操作,对stdout做写操作,对stderr做缓存方式写入.
+
+*demo8-1.c
+#include <fcntl.h>
+#include "syscalls.h"
+#include <stdlib.h>
+
+#define PERMS 0666 /* RW for owner,group,others */
+
+void filecopy(int ifp,int ofp);
+
+
+main(int argc,char *argv[])
+{
+	int fp;
+	if(argc == 1) /* no args;copy standard input */
+		filecopy(0,1);
+	else{
+		while(--argc>0){
+			if((fp = open(*++argv,O_RDONLY))==-1){
+				//printf("cat:can't open %s\n",*argv);
+				return 1;
+			}
+			else{
+				filecopy(fp,1);
+				close(fp);
+			}			
+		}		
+	}
+	return 0;
+}
+
+/* filecopy:copy file ifp to file ofp */
+void filecopy(int ifp,int ofp)
+{
+	char buf[BUFSIZ];
+	int n;
+	while((n = read(ifp,buf,BUFSIZ))>0)
+		write(ofp,buf,n);	
+}
+
+
+FILE *fopen(char *name,char *mode)
+{
+	int fd;
+	FILE *fp;
+	
+	if(*mode != 'r' && *mode != 'w' && *mode != 'a')
+		return NULL;
+	for(fp = _iob;fp < _iob + OPEN_MAX;fp++)
+		if((fp->flag & (_READ|_WRITE))==0)
+			break; /* found free slot */
+	if(fp>=_iob+OPEN_MAX)
+		return NULL;
+	if(*mode == 'w')
+		fd = creat(name,PERMS);
+	else if(*mode == 'a'){
+		if((fd = open(name,O_WRONLY,0))==-1)
+			fd = creat(name,PERMS);
+		lseek(fd,0L,2);
+	}else
+		fd = open(name,O_RDONLY,0);
+	if(fd==-1)
+		return NULL;
+	fp->fd = fd;
+	fp->cnt = 0;
+	fp->base = NULL;
+	fp->flag = (*mode=='r')?_READ:_WRITE;
+	return fp;
+}
+
+/* _fillbuf: allocate and fill input buffer */
+int _fillbuf(FILE *fp)
+{
+	int bufsize;
+	if((fp->flag&(_READ|_EOF|_ERR))!=_READ)
+		return EOF;
+	bufsize = (fp->flag&_UNBUF)?1:BUFSIZ;
+	if(fp->base==NULL)
+		if((fp->base= (char *)malloc(bufsize))==NULL)
+			return EOF;
+	fp->ptr = fp->base;
+	fp->cnt = read(fp->fd,fp->ptr,bufsize);
+	if(--fp->cnt < 0){
+		if(fp->cnt ==-1)
+			fp->flag |= _EOF;
+		else
+			fp->flag |= _ERR;
+		return EOF;
+	}
+	return (unsigned char)*fp->ptr++;
+}
+
+/* _flushbuf: flush input buffer */
+int _flushbuf(int c,FILE *fp)
+{
+	unsigned char uc = c;
+	int bufsize,num_written;
+	if((fp->flag&(_WRITE|_EOF|_ERR))!=_WRITE)
+		return EOF;	
+	if(fp->base==NULL && ((fp->flag&_UNBUF)==0)){
+		if((fp->base = (char *)malloc(bufsize))==NULL)
+		{
+			fp->flag |=_UNBUF;
+		}else{
+			fp->ptr = fp->base;
+			fp->cnt = bufsize - 1;
+		}
+	}
+	if(fp->flag&_UNBUF){
+		fp->base = NULL;
+		fp->cnt =0;
+		if(c==EOF)
+			return EOF;
+		num_written = write(fp->fd,&uc,1);
+		bufsize = 1;
+	}else{
+		if(c!=EOF)
+			 *(fp)->ptr++ = uc;
+		bufsize = (int)(fp->ptr-fp->base);
+		num_written = write(fp->fd,fp->base,bufsize);
+		fp->ptr = fp->base;
+		fp->cnt = bufsize -1;
+	}
+	if(num_written == bufsize)
+		return c;
+	else{
+		fp->flag |=_ERR;
+		return EOF;
+	}	
+}
+
+
+int fflush(FILE *fp){	
+	int retval,i=0;
+	if(fp==NULL){
+		for(i=0;i<OPEN_MAX;i++){
+			if(((&_iob[i])->flag & _WRITE) && (fflush(&_iob[i])==-1))			 
+				retval=-1;
+		}
+	}
+	else{
+		if((fp->flag&_WRITE)==0){
+			return -1;
+		_flushbuf(EOF,fp);
+		if(fp->flag&_ERR)
+			retval=-1;		
+		}
+	}
+	return retval;
+}
+
+int fclose(FILE *fp){
+	int fd;
+	if(fp==NULL){
+		return -1;
+	}
+	fd = fp->fd;
+	fflush(fp);
+	fp->cnt = 0;
+	fp->ptr=NULL;
+	if(fp->base !=NULL)
+		free(fp->base);
+	fp->base = NULL;
+	fp->flag =0;
+	fp->fd = -1;
+	return close(fd);
+}
+
+ref:https://www.cs.bu.edu/teaching/c/file-io/intro/
+http://baike.baidu.com/subview/339094/7941971.htm#3 close
+http://baike.baidu.com/view/656650.htm fflush
+
+Exercise 8-2. Rewrite fopen and _fillbuf with fields instead of explicit bit operations.Compare code size and execution speed.
+
+Exercise 8-3. Design and write _flushbuf,fflush,and fclose.
+
+Exercise 8-4. The standard library function
+    int fseek(FILE *fp,long offset,int origin)
+is identical to lseek except the fp is a file pointer instead of a file descriptor and the return value is an int status,not a position.Write fseek.Make sure that your fseek coordinaates properly with the buffering done for the other functions of the library.
+ 
+
+8.6 Example - Listing Directories
+    A dfiierent kind of file system interaction is sometimes called for determining information about a file,not what it contains,
+    另一种需要对文件系统的交互是有时调用来获取信息有关文件的,而不涉及它包含什么,
+A directory-listing program such as the UNIX command ls is an example - it prints the names of files in a directory,and,optionally,other information,
+目录显示程序像UNIX命令ls就是一个列子 - 它打印文件的名称在一个目录中,并且,可选项有其他信息,
+such as sizes,permissions,and so on.The MS-DOS dir command is analogous.
+例如文件大小,权限等等.MS-DOS的dir命令相似功能.
+    Since a UNIX directory is just a file,ls need only read it to retrieve the filenames.But it is necessary to use a system call to access other information about a file,such as its size.
+    由于UNIX目录就是文件一种,ls仅仅需要读取它并且取回文件名字.但是它必须使用系统调用来访问其他信息关于文件的,例如文件的大小.
+On other systems,a system call may be needed even to access filenames;this is the case on MS-DOS,for instance.What we want is provide access to the information in a relatively system-independent way,
+在其他一些系统上,系统调用可能需要甚至是访问文件名;例如在MS-DOS就是如此.我们想要的就是提供访问信息的方式是相对系统独立的,
+even though the implementation may be highly system-dependent.
+即使其实现是高度依赖于系统的.
+    We will illustrate some of this by writing a program called fsize.fsize is a special form of ls that prints the sizes of all files named in its commandline argument list.
+    我们将说明这些通过编写一个程序叫做fsize.fisze是一个特殊的程序在ls中用来打印所有文件的大小在命令行参数所列出的.
+If one of the files is directory,fsize applies itself recursively to that directory.If there are no arguments at all,it processes the current directory.
+如果一个文件是目录,fsize作用于自己递归调用来作用目录.如果没有任何参数,它处理当前目录.
+    Let us begin with a short review of UNIX file system structure.A directory is a file that contins a list of file names and some indication of where they are located.
+    让我们开始回顾下UNIX的文件系统结构.一个目录是文件,这个文件包含了列表,列表是文件名和一些指示文件位置的信息.
+The "location" is an index into another table called the "inode list." The inode for a file is where all information about a file except its name is kept.
+其中"位置"是其他表格索引被叫做"索引节点列表".节点对于文件是除了文件以外所有信息存放的地方.
+A directory entry generally consists of only two items,the filename and an inode number.
+一个目录项通常包含了仅两个条目,文件和索引节点号.
+    Regrettably,the format and precise contents of a directory are not the same on all versions of the system.So we will divide the task into two pieces to try to isolate the non-protable parts.
+    遗憾的是,目录的格式和确切的内容是不同的在不同版本的系统中.所以我们分割任务为两个部分,以用来分离出不可分割的部分.
+The outer level defines a structure called a Dirent and three routines opendir,readdir,and closedir to provide system-independent access to the name and inode number in a directory entry.
+外层定义了一个结构叫做Dirent和三个程序opendir,readir和closedir来支持独立于系统来访问名称,索引节点号在目录项中.
+We will write fsize with this interface.Then we will show how to implement these on systems that use the same directory structure as Version 7 and System V UNIX;variants are left as exercies.
+我们将编写fsize通过这些接口.然后展示怎么样实现它们在系统,这些系统使用相同的目录结构,像UNIXT Version  7和UNIX V;有变化的部分留作习题.
+    The Dirent struct contains the inode number and the name.The maximum length of a filename compenent is NAME_MAX,which is a system-dependent value.
+    Dirent结构包含索引节点号和名称.最大的长度文件的由NAME_MAX决定,这个值是系统依赖的值.
+opendir returns a pointer to a structure called DIR,analogous to FILE,which is used by readdir and closedir.This information is collected into a file called dirent.h.
+opendir返回指针指向结构叫做DIR,类似与FILE,这个结构被使用通过readdir和closedir.这些信息被搜集放在一个文件叫做dirent.h.
+#define NAME_MAX 14 /* longest filename component */
+						/* system-dependent */
+
+typedef struct{	/* portable directory entry; */
+	long ino;		/* inode number */
+	char name[NAMX_MAX+1]; /* name +'\0' terminator */
+} Dirent;
+
+typedef struct{ /* minimal DIR:no buffering,etc. */
+	int fd; /* file descriptor for directory */
+	Dirent d; /* the directory entry */
+} DIR;
+
+DIR *opendir(char *dirname);
+Dirent *readdir(DIR *dfd);
+void closedir(DIR *dfd);
+
+    The system call stat takes a filename and returns all of the information in the inode for that file,or -1 if there is an error.That is,
+    系统调用stat获取文件名和返回所有信息在索引节点给文件,或者-1如果有错误.就是,
+char *name;
+struct stat stbuf;
+int stat(char *,struct stat *);
+
+stat(name,&stbuf);
+
+fills the structure stbuf with the inode information for the file name.The structure describing the value returned by  stat is in <sys/stat.h>,and typeically looks like this:
+它用文件name的索引节点信息填充结构stbuf.描述stat的返回值的结构包含在头文件<sys/stat.h>中,它的一个典型形式如下所示:
+
+struct stat /* inode information returned by stat */
+{
+dev_t    st_dev;    /* device of inode */
+ino_t     st_ino;    /* inode number */
+short     st_mode;    /* mode bits */
+short     st_nlink;    /* number of links to file */
+short     st_uid;    /* owner's user id */
+short     st_gid;    /* owner's group id */
+dev_t     st_rdev;    /* for special files */
+off_t       st_size;    /* file size in characters */
+time_t    st_attime;    /* time last accessed */
+time_t    st_mtime;    /* time last modified */
+time_t    st_ctime;    /* time inode last changed */
+}
+
+Most of these values are explained by the comment fields.The types like dev_t and ino_t are defined in <sys/types.h>,which must be included too.
+大多数的值都做了解释通过字段的注释.类型像dev_t和ino_t都是定义在<sys/types.h>中,源文件必须包含此文件.
+    The st_mode entry contains a set of flags describing the file.The flag definitions are also included in <sys/stat.h>;we need only the part that deals with file type:
+    st_mode项包含了描述文件的标识.这些标识同样定义在<sys/stat.h>中;我们只需要处理文件类型有关部分:
+#define S_IFMT 0160000    /* type of file: */
+#deine S_IFDIR 0040000    /* directory */
+#define S_IFCHR  0020000 /* character special */
+#define S_IFBLK 0060000    /* block special */
+#define S_IFREG 0100000    /* regular */
+/* ... */
+Now we are ready to write the program fsize.If the mode obtained from stat indicates that a file is not a director,then the size is at hand and can be printed directly.If the file is directory,
+现在我们准备编写程序fszie.如果模式从stat得到指示是一个文件而不是目录,那么文件大小已经得到然后就能够直接打印.如果文件是目录,
+however,then we have to process that directory one file at a time;it may in turn contain sub-directories,so the process is recursive.
+那么,我们需要处理目录中一次一个文件;它可能包含子目录,所以处理是递归的.
+    The main routine deals with command-line arguments;it hands each argument to the function fsize.
+    主程序处理通过命令行参数;它处理没一个参数通过函数fsize.
+#include <stdio.h>
+#include <string.h>
+#include "syscalss.h"
+#include <fcntl.h>            /* flags for read and write */
+#include <sys/types.h>    /* typedefs */
+#include <sys/stat.h>      /* structure returned by stat */
+#include "dirent.h"
+
+void fszie(char *);
+
+/* print file sizes */
+main(int argc,char **argv)
+{
+	if(argc==1) 	/* default: current directory */
+		fsize(".");
+	else
+		while(--argc>0)
+			fsize(*++argv);
+	return 0;
+}
+
+    The function fsize prints the size of the file.If the file is a directory,however,fsize first calls dirwalk to handle all the files in it.Note how the flag names S_IFMT and S_IFDIR from <sys/stat.h> are used to decide if the file is a directory.Parenthesization matters,beacuse the precedence of & is lower than that of ==.
+    函数fsize打印文件大小.如果文件是一个目录,那么,fsize第一个调用dirwalk处理所有文件在目录中的.注意标识名字S_IFMT和S_IFDIR从<sys/stat.h>中使用,用来判定文件是一个目录.
+括号是必须的,因为&的优先级要低于==.
+int stat(char *,struct stat *)
+void dirwalk(char *,void (*fcn)(char *));
+
+/* fsize:print size of file "name" */
+void fsize(char *name)
+{
+	struct stat stbuf;
+	
+	if(stat(name,&stbuf)==-1){
+		fprintf(stderr,"fsize:can't access %s\n",name);
+		return;
+	}
+	if((stbuf.st_mode & S_IFMT)==S_IFDIR)
+		dirwalk(name,fsize);
+	printf("%8ld %s\n",stbuf.st_size,name);
+}
+    The function dirwalk is a general routine that applies a function to each file in a directory.It opens the directory,loops through the files in it,calling the function on each,then closes the directory and returns.
+    函数dirwalk是通用程序,这个程序作用于每个文件在目录中的.它打开目录,循环处理每个文件,调用函数每次,然后关闭目录并返回.
+Since fsize calls dirwalk on each directory,the two functions call each other recursively.
+因为fsize调用dirwalk对每个目录,所以这两个函数是递归调用的.
+#define MAX_PATH 1024
+
+/* dirwalk: apply fcn to all files in dir */
+void dirwalk(char *dir,void (*fcn)(char *))
+{
+	char name[MAX_PATH];
+	Dirent *dp;
+	DIR *dfd;
+	
+	if((dfd = opendir(dir))==NULL){
+		fprintf(stderr,"dirwalk:can't open %s\n",dir);
+		return;
+	}
+	while((dp=readdir(dfd))!=NULL){
+		if(strcmp(dp->name,".") == 0
+		|| strcmp(dp->name,"..") == 0)
+		 continue; /* skip self and parent */
+		
+		if(strlen(dir) + strlen(dp->name)+2>sizeof(name))
+			fprintf(stderr,"dirwalk:name %s%s too long\n",dir,dp->name);
+		else{
+			sprintf(name,"%s%s",dir,dp->name);
+			(*fcn)(name);
+		}
+	}
+	closedir(dfd);
+}
+
+Each call to readdir returns a pointer to information for the next file,or NULL when there are no files left.Each directory always contains entries for itself,called ".",and its parent,"..";these must be skipped,
+没一次调用readdir返回指针指向信息下一个文件,或者NULL当没有文件剩下.每一个目录总是包含自己的条目,叫做".",和它的父节点,"..";这些必须跳过,
+or the program will loop forever.
+或者程序将无限循环.
+    Down to this level,the code is independent of how directoies are formatted.The next step is to parsent minimal versions of opendir,readdir,and closedir for a specific system.
+    该层次之下,代码与目录格式是不相关的.下一步要做的是某个最小版本提供一个opendir,readdir,和closedir具体的系统.
+The following routines are for Version 7 and System V UNIX system;they use the directory information in the header <sys/dir.h>,which looks like this:
+下面的程序是UNIX 7 和 UNIX V,它们使用目录信息在头文件<sys/dir.h>,类似于
+#ifndef DIRSIZE
+#define DIRSIZ 14
+#endif
+struct direct    /* directory entry */
+{
+    ino_t d_ino;        /* inode number */
+    char d_name[DIRSIZ];    /* long name does not have '\0' */
+};
+
+Some versions of the system permit much longer names and have a more complicated directory structure.
+一些版本的系统允许更长名字和有更复杂的目录结构.
+    The type ino_t is a typedef that describes the index into the inode list.It happens to be unsigned short on the system we use regularly,but this is not the sort of information to embed in a program;
+    类型ino_t是一个typedef定义的类型,其描述了索引节点表中的索引.它出现使用的是unsigned short在系统中我们所使用的,但是这种信息不应该嵌入到程序中;
+it might be different on a different system,so the typedef is better.A complete set of "system" types is found in <sys/types.h>.
+它可能不同在不同系统上,所以typedef更好.所有的"系统"类型可以在<sys/types.h>中找到.
+    opendir opens the directory,verifies that the file is a directory (this time by the system call fstat,which is like stat except tht it applies to a file descriptor),allocate a directory structure,and records the information:
+    opendir打开目录,验证此文件是一个目录(调用系统fstat,与stat类似除了它作用与文件说明符),然后分配一个目录结构,并保存信息.
+
+int fstat(int fd,struct stat *);
+
+/* opendir: open a directory for readdir calls */
+DIR *opendir(char *dirname)
+{
+	int fd;
+	struct stat stbuf;
+	DIR *dp;
+	
+	if((fd=open(dirname,O_RDONLY,0))==-1
+		|| fstat(fd,&stbuf)==-1
+		|| (stbuf.st_mode & S_IFMT) != S_IFDIR
+		|| (dp = (DIR*)malloc(sizeof(DIR))) == NULL)
+		return NULL;
+	dp->fd = fd;
+	return dp;
+}
+
+closedir closes the directory file and frees the space.:
+closedir关闭目录文件和释放空间:
+/* closedir: close directory opened by opendir */
+void closedir(DIR *dp)
+{
+    if(dp){
+        close(dp->fd);
+        free(dp);
+    }
+}
+    Finally,readdir uses read to read each directory entry.If a directory slot is not currently in use(because a file has been removed),the inode number is zero,and this position is skipped.
+    最终,readdir使用read来读取每个目录.如果目录槽当前没有使用(因为文件被移除),文件索引节点号为0,那么将略过此位置.
+Otherwise,the inode number and name are placed in a static structure and a pointer to that is returned to the user.Each call overwrites the information from the previous one.
+否则,文件索引节点号和名字将替换静态结构和指针指向并返回给用户.每次调用腹泻信息从前一个调用获取的.
+#include <sys/dir.h>	/* local directory structure */
+
+/* readdir: read directory entries in sequence */
+Dirent *readdir(DIR *dp)
+{
+	struct direct dirbuf;	/* local directory structure */
+	static Dirent d;	/* return : protable structure */
+	while(read(dp->fd,(char *)&dirbuf,sizeof(dirbuf))==sizeof(dirbuf)){
+		if(dirbuf.d_ino == 0) /* slot not in use */
+			continue;
+		d.ino = dirbuf.d_ino;
+		strncpy(d.name,dirbuf.d_name,DIRSIZ);
+		d.name[DIRSIZ] = '\0'; /* ensure termination */
+		return &d;
+	}
+	return NULL;
+}
+    Although the fsize program is rather specialized,it does illustrate a couple of important ideas.First,many programs are not "system programs";
+    尽管fsize程序不通用,但是它描述了一些重要的思想.第一,许多程序都不是"系统程序",
+they merely use information that is maintained by the operating system.For such programs,it is crucial that the representation of the information appear only in standard headers,
+它们仅仅使用信息来维护通过操作系统调用.对于这些程序,重要的信息表示仅出现在标准头文件中,
+and that programs include those files instead of embedding the declarations in themselves.
+并且程序包含这些头文件而不必包含相应的说明.
+The second observation is that with care it is possible to create an interface to system-dependent objects that it itself relatively system-independent.The functions of the standard library are good example.
+其次,可以谨慎的创建一个依赖于系统的对象的界面,但是界面是独立于系统的.标准库中的函数都是很好的例子.
+
+Exercise 8-5. Modify the fsize program to print the other information comtained in the inode entry.
+
+
+8.7 Example --- A Storage Allocateor
+    In Chapter 5,we presented a very limited stack-oriented storage allocator.The version that we will now write is unrestricted.Calls to malloc and free may occur in any order;
+    在第五章,我们展示了一个非常有限的面向栈存储的分配程序.本机的版本将编写不受限制.调用malloc和freee可以出现在任意次序;
+malloc calls upon the operating system to obtain more memory as neccessary.These routines illustrate some of the considerations involved in writing machine-dependent code in a relatively machine-independent way,
+malloc调用操作系统时获得更多的存储空间如果必要.这些程序演示了一种考虑调用在编写相对于独立系统的方法的代码在依赖于系统的方式,
+and also show a real-life application of structures,unions and typedef.
+并且展示了结构,联合和typedef的应用.
+    Rather than allocating from a compiled-in fixed-sized array,malloc will request space from the operating system as needed.Since other activities in the program may also request space without calling this allocator,
+    相比在编译时分配固定大小的数组,malloc请求空间从操作系统在需要时.由于其他活动在程序中也可能需要请求空间而没有调用malloc来申请,
+the space that malloc manages may not be contiguous.Thus its free storage is kept as a list of free blocks.Each block contains a size,a pointer to the next block,and the space itself.
+空间 由malloc管理的可能不是连续的.因此空闲的存储保存以空闲块列表的形式.每个块包含一个大小,一个指针指向下一个块,和空间本身.
+The blocks are kept in order of increasing storage address,and the last block(highest address) points to the first.
+块保存以上升的地址次序,并且最后一块(最高地址)指向第一块.
+
+
+    When a request is made,the free list is scanned until a big-enough block is found.This algorithm is called "first fit," by contrast with "best fit," which looks for the smallest block that will satisfy the request.
+    当有请求时,空闲列表被扫描知道一个足够大的块被找到.这个算法被叫做"最先匹配,"与之相对的是"最优匹配,"它寻找最小的块,这个块能够满足请求.
+If the block is exactly the size requested it is unlinked from the list and returned to the user.If the block is too big,it is split,and the proper amount is retuned to the user while the residue remains on the free list.
+如果块恰好与请求大小一致,它被移除从链表并返回给用户.如果块太大,它被拆分,然后合适的量返回给用户而剩下的一块留在空闲列表中.
+If no big-enough block is found,another large chunk is obtained from the operating system and linked into the free list.
+如果没有足够大小的块被找到,另一个更大的块被获得从操作系统中并且关联到空闲列表上.
+    Freesing also causes a search of the free list,to find the proper place to insert the block being freed.If the block being freed is adjacent to a free block on either side,
+    释放过程同样引起搜索空闲列表,为了找到合适的位置插入块在释放时.如果块被释放正好靠近一个空闲块在任何一端,
+it is coalesced with it into a single bigger block,so storage does not become too fragmented.Determining adjacency is easy because the free list is maintained in order of increasing address.
+它合成一起成一个单一更大的块,所以存储不会成为碎片的.判别相邻非常容易因为空闲列表维护次序以递增的地址.
+    One problem,which we alluded to in Chapter 5,is to ensure that the storage returned by malloc is aligned properly for the objects that will be stored in it.
+    一个问题,这个问题我们指出在第五章,为了确保存储空间返回通过malloc的是对齐的,能适当给对象,这些对象将被存储到其中.
+Although machines vary,for each machine there is a most restrictive type: if the most restrictive type can be stored at a particular address,all other types may be also.
+虽然机器不同,对每个机器有一个最受限制的类型:如果最受限制的类型能够存储到特定的地址,所有其他类型都将可以.
+On some machines,the most restrictive type is a double;on others,int or long suffices.
+在一些机器中,最受限制的类型就是double;其他一些机器,是int或long类型.
+    A free block contains a pointer to the next block in the chain,a record of the size of the block,and then the free space itsefl;the control information at the beginning is called the "header." 
+    一个空闲的块包含指针指向下一个块在链表中,一个记录关于块的大小,和空闲空间本身;控制信息在开始的位置被叫做"header."
+To simplify alignment,all blocks are multiples of the header size,and the header is aligned properly.
+为了简化对齐,所有的块都是header的整数倍,并且header已经适当对齐.
+This is achieved by a union that contains the desired header structure and an instance of the most restrictive alignment type,which we have arbitrarily made a long:
+这个实现通过联合,这个联合包含了期望的头部结构和一个受限对齐类型,这个我们假设是long类型:
+typedef long Align; /* for alignment to long boundary */
+
+union header{	/* block header: */
+	struct{
+		union header *ptr; /* next block if on free list */
+		unsigned size;		/* size of this block */
+	} s;
+	Align x;		/* force alignment of blocks */
+};
+
+typedef union header Header;
+
+The Align field is never used;it just forces each header to be aligned on a worst-case boundary.
+Align字段永远不会使用;它仅仅强调每个header能够对齐在最坏的情况下.
+    In malloc,the requested size in characters is rounded up to the proper number of header-sized units;the block that will be allocated contains one more unit,for the header itself,
+    在malloc函数中,请求的大小以字符的将舍入使得大小为头部大小的整数倍的单元;块为被分配的包含多一个单元,用于头部本身,
+and this is the value recorded in the size field of the header.The pointer returned by malloc points at the free space,not at the header itseflt.The user can do anything with the space requested,
+并且这个值记录在size字段在头中.指针返回通过malloc指向空闲空间,而不是header本身.用户能做任何事情通过在请求的空间上,
+but if anything is written outside of the allocated space the list is likely to be scrambled.    
+但是如果任何写入的数据在分配的空间之外,那么可能会破坏块的列表.
+
+
+The size field is necessary because the blocks controlled by malloc need not be contigous - it is not possible to compute sizes by pointer arithmetic.
+大小字段是必须的因为块控制通过malloc不是连续的 - 通过指针算法计算大小是不可能的.
+    The variable base is used to get started.If freep is NULL,as it is at the first call of malloc,then a degenerate free list is created;it contains one block of size zero,and points to itself.
+    变量base表示空闲块的开始处.如果freep是NULL,就像第一次调用malloc样,那么一个退化的空闲列表被创建;它包含一个块的大小为0,和一个指针指向自己.
+In any case,the free list is then searched.The search for a free block of adequate size begins at the point(freep) where the last block was found;this strategy helps keep the list homogeneous.
+任何情况下,空闲列表被搜索.搜索空闲块适当大小的开始在指针,这个指针是上一个块找到的位置;这个策略帮助空闲是同构的.
+If a too-big block is found,the tail end is returned to the user;in this way the header of the original needs only to have its size adjusted.In all cases,
+如果一个太大的块被找到,尾部返回给用户;这个方式头部只需要改变size来调整.无论在哪种情况,
+the pointer returned to the user points to the free space within the block,which begins one unit beyond the header.
+指针返回给用户指向空闲空间在这个块,开始一个单元属于header.
+static Header base;		/* empty list to get started */
+static Header *freep = NULL;		/* start of free list */
+
+/* malloc: general - purpose storage allocator */
+void *malloc(unsigned nbytes)
+{
+	Header *p,*prevp;
+	Header *morecore(unsigned);
+	unsigned nunits;
+	
+	nunits = (nbytes+sizeof(HEADER)-1)/sizeof(Header) + 1;
+	if((prevp = freep)==NULL){	/* no free list yet */
+		base.s.ptr = freepp = prevp = &base;
+		base.s.size = 0;
+	}
+	for(p = prevp->s.ptr; ; prevp = p,p=p->s.ptr){
+		if(p->s.size >= nunits){	/* big enough */
+			if(p->s.size == nunits)	/* exactly */
+				prevp->s.ptr = p->s.ptr;
+			else{		/* allocate tail end */
+				p->s.size -= nunits;
+				p += p->s.size;
+				p->s.size = nunits;
+			}
+			freep = prevp;
+			return (void *)(p+1);
+		}
+		if(p==freep)	/* wrapped around free list */
+			if((p = morecore(nunits))==NULL)
+				return NULL;
+	}
+}
+    
+    The function morecore obtains storage from the operating system.The details of how it does this vary from system to system.Since asking the system for memory is a comparatively expensive operation,
+    函数morecore获得存储从操作系统.其实现细节因系统的不同而不同.因为向系统申请存储空间是一个代价相当大的操作,
+we don't want to do that on every call to malloc,so morecore requests at least NALLOC units;this larger block will be chopped up as needed.
+所以我们不希望对每个malloc调用都这么做,所以morecore请求至少NALLOC单元;这个大的块被分成小块当需要时.
+After setting the size field, morecore inserts the additional memory into the arena by calling free.
+在设置size字段之后,morecore函数插入新增的内存到这个区域通过调用free函数.
+    The UNIX system call sbrk(n) returns a pointer to n more bytes of storage.sbrk returns -1 if there was no space,even though NULL would have been a better design.
+    UNIX系统调用sbrk(n)返回指针指向含有n个字节的存储空间.sbrk函数返回-1如果没有空间,尽管NULL可能是更好的设计.
+The -1 must be cast to char * so it can be compared with the return value.Again,casts make the function relatively immune to the details of pointer representation on different machines.
+-1必须转换成char*以便它能与返回值比较.而且,强制转换使得函数相当于免除指针表现的细节的影响在不同的机器上.
+There is still one assumption,however,that pointers to different blocks returned by sbrk can be meaningfully compared.This is not guaranteed by the standard,
+这里依然存在一个假设,即指针指向不同块返回通过sbrk能够有意义的比较.标准中并没有保证这一点,
+which permits pointer comparisons only within an array.Thus this version of malloc is portable only among machines for which general pointer comparison is meaningful.
+它只允许指针比较在一个数组上.这样,这个版本的malloc移植这种机器之间,一般指针比较有意义的机器之间.
+#define NALLOC 1024	/* minimum #units to request */
+
+/* morecore: ask system for more mmemory */
+static Header *morecore(unsigned nu)
+{
+	char *cp,*sbrk(int);
+	Header *up;
+	
+	if(nu<NALLOC)
+		nu = NALLOC;
+	cp = sbrk(nu * sizeof(Header));
+	if(cp == (char *)-1)	/* no space at all */
+		return NULL;
+	up = (Header *)cp;
+	up->s.size = nu;
+	free((void*)(up+1));
+	return freep;
+}
+
+    free itself is the last thing.It scans the free list,starting at freep,looking for the place to insert the free block.This is either between two existing blocks or at one end of the list.In any case,
+    free本身是最后的事情.它扫描整个空闲列表,从freep处开始,寻找可以插入空闲块.这个地方可能在两个自由块之间或者在列表末尾.任意情况,
+if the block being freed is adjacent to either neighbor,the adjacent blocks are combined.The only troubles are keeping the pointers pointing to the right things and the sizes correct.
+如果块被释放与另一个块相邻,相邻的块会合并.唯一的麻烦是指针指向正确的事情和设置正确的大小.
+/* free: put block ap in free list */
+void free(void *ap)
+{
+	Header *bp,*p;
+	
+	bp = (Header *)ap -1; /* point to block header */
+	for(p = freep;!(bp>p && bp< p->s.ptr);p = p->s.ptr)
+		if(p>= p->s.ptr && (bp>p || bp<p->s.ptr))
+			break;		/* freed block at start or end of arean */
+	
+	if(bp+bp->size == p->s.ptr){	/* join to upper nbr */
+		bp->s.size += p->s.ptr->s.size;
+		bp->s.ptr = p->s.ptr->s.ptr;
+	}else
+		bp->s.ptr = p->s.ptr;
+	if(p+p->s.size == bp ){		/* join to lower nbr */
+		p->s.size += bp->s.size;
+		p->s.ptr = bp->s.ptr;
+	}else
+		p->s.ptr = bp;
+	freep = p;	
+}
+
+    Although storage allocation is intrinsically machine-dependent,the code above illustrates how the machine dependencies can be controlled and confined to a very small part of the  program.
+    尽管存储分配处理依赖具体的机器,但是以上代码描述了如何控制依赖于机器的部分并将它们组合成一个部分的程序.
+The use of typedef and union handles alignment(given that sbrk supplies an appropriate pointer).Casts arrange that pointer conversions are made explicit,
+使用typedef和union很好的处理了对齐(给了sbrk支持合适的指针).强制转换安排,指针转换是显式处理的,
+and even cope with a badly-designed system interface.Even though the details here are related to storeage allocation,the general approach is applicable to other situations as well.
+并且甚至解决设计不好的系统接口.虽然这里的细节只涉及了存储分配,通用的方法处理其他问题也很好用.
+
+Exercise 8-6. The standard library function calloc(n,size) return a pointer to n objects of size,with the storage initialized to zero.Write calloc,by calling malloc or by modifying it.
+
+Exercise 8-7. malloc accepts a size request without checking its plausibility;free beleves taht the block it is asked to free contains a vlid size field.Improve these routines so they take more pains with error checking.
+
+Exercise 8-8. Write a routine bfree(p,n) that will free an arbitrary block p of n characters into the free list maintained by malloc and free.By using bfree,a user can add a static or external array to the free list at any time.
